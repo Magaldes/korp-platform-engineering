@@ -5,16 +5,16 @@
   "defaultBranch": "main",
   "origin": "https://github.com/Magaldes/korp-platform-engineering.git",
   "localBranch": "main",
-  "localCommit": "4f80c8c",
-  "publicReachability": "not-verifiable-after-push",
-  "verificationStatus": "blocked",
-  "status": "blocker",
-  "resolvedPreviousBlocker": "DELIVERY-ORIGIN-MISSING",
-  "blocker": {
-    "id": "DELIVERY-HTTPS-AUTH",
-    "description": "Normal push to origin/main could not read HTTPS credentials in the environment.",
-    "command": "git push -u origin main",
-    "error": "fatal: could not read Username for 'https://github.com': No such device or address",
-    "actionTaken": "No credentials, credential helper, repository visibility, or security setting was changed."
-  }
+  "publishedCommit": "78d16f8d2008a913bdd5e7bf408d514abcdfd44d",
+  "publishedCommitUrl": "https://github.com/Magaldes/korp-platform-engineering/commit/78d16f8d2008a913bdd5e7bf408d514abcdfd44d",
+  "publicReachability": "verified",
+  "verificationStatus": "verified",
+  "remoteMainVerified": true,
+  "agentPackagesPublished": false,
+  "secretScan": "passed",
+  "status": "verified",
+  "resolvedBlockers": [
+    "DELIVERY-ORIGIN-MISSING",
+    "DELIVERY-HTTPS-AUTH"
+  ]
 }
