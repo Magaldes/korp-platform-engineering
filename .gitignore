@@ -1,0 +1,28 @@
+# Go build/test output
+/bin/
+/dist/
+*.test
+*.out
+coverage.out
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# IDE and OS files
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Ansible runtime artifacts
+*.retry
+automation/ansible/.cache/
+
+# Local evidence generated during demonstrations
+evidence/generated/
+
+# Internal agent control artifacts; kept locally, never published
+/agent-packages/

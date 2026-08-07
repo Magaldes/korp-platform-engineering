@@ -1,0 +1,27 @@
+{
+  "endpoint": "http://localhost:80/projeto-korp",
+  "requests": [
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "nome": "Projeto Korp",
+        "horario": "2026-08-07T20:59:19Z"
+      }
+    },
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "nome": "Projeto Korp",
+        "horario": "2026-08-07T20:59:21Z"
+      }
+    }
+  ],
+  "assertions": {
+    "nameExact": true,
+    "utcRfc3339": true,
+    "dynamicPerRequest": true,
+    "timestampsDiffer": true
+  }
+}

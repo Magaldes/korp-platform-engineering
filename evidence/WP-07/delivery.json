@@ -1,0 +1,11 @@
+{
+  "origin": null,
+  "remoteOutput": "git remote -v returned no entries",
+  "publicGithubRepository": "not-verifiable",
+  "status": "blocker",
+  "blocker": {
+    "id": "DELIVERY-ORIGIN-MISSING",
+    "description": "No Git remote named origin is configured; public GitHub reachability cannot be verified.",
+    "actionTaken": "None. No repository was created, no visibility was changed, and no commit or push was performed."
+  }
+}

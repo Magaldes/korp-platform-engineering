@@ -1,0 +1,48 @@
+{
+  "prometheus": {
+    "container": "compose-prometheus-1",
+    "ip": "172.22.0.4",
+    "url": "http://172.22.0.4:9090",
+    "target": {
+      "job": "http-server-projeto-korp",
+      "instance": "http-server-projeto-korp:8080",
+      "health": "up",
+      "scrapeUrl": "http://http-server-projeto-korp:8080/metrics",
+      "lastError": ""
+    },
+    "up": 1,
+    "metricPresent": "projeto_korp_http_requests_total",
+    "counter": {
+      "query": "sum(projeto_korp_http_requests_total)",
+      "initial": 10,
+      "final": 15,
+      "generatedRequests": 5,
+      "grew": true
+    }
+  },
+  "grafana": {
+    "container": "compose-grafana-1",
+    "ip": "172.22.0.3",
+    "url": "http://172.22.0.3:3000",
+    "health": "ok",
+    "datasource": {
+      "uid": "prometheus",
+      "url": "http://prometheus:9090"
+    },
+    "dashboard": {
+      "uid": "korp-observability",
+      "title": "Projeto Korp - Observability",
+      "panelCount": 3,
+      "panels": [
+        {"title": "Availability", "type": "stat", "promQL": "up{job=\"http-server-projeto-korp\"}"},
+        {"title": "Request Total", "type": "stat", "promQL": "sum(projeto_korp_http_requests_total)"},
+        {"title": "Request Rate", "type": "timeseries", "promQL": "sum(rate(projeto_korp_http_requests_total[1m]))"}
+      ]
+    },
+    "queriesPrometheusSuccessfully": true
+  },
+  "integrationTest": {
+    "command": "PROMETHEUS_BASE_URL=http://172.22.0.4:9090 GRAFANA_BASE_URL=http://172.22.0.3:3000 tests/integration/observability.sh",
+    "result": "passed"
+  }
+}

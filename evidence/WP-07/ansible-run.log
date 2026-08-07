@@ -1,0 +1,113 @@
+[WARNING]: Deprecation warnings can be disabled by setting `deprecation_warnings=False` in ansible.cfg.
+[DEPRECATION WARNING]: ansible.builtin.apt_repository has been deprecated. Use deb822_repository instead. This feature will be removed from ansible-core version 2.25.
+Origin: /home/magaldes/projetos/korp-project/automation/ansible/site.yml:126:7
+
+124     - name: "Docker: configure official Ubuntu 24.04 repository"
+125       become: true
+126       ansible.builtin.apt_repository:
+          ^ column 7
+
+
+PLAY [Provision Projeto Korp] **************************************************
+
+TASK [Preflight: inspect host TCP port 80 (read-only)] *************************
+[WARNING]: Host 'localhost' is using the discovered Python interpreter at '/usr/bin/python3.12', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.21/reference_appendices/interpreter_discovery.html for more information.
+ok: [localhost]
+
+TASK [Preflight: collect current Docker workloads for diagnostics (read-only)] ***
+ok: [localhost]
+
+TASK [Preflight: fail when port 80 cannot be inspected] ************************
+skipping: [localhost]
+
+TASK [Preflight: fail on occupied host TCP port 80 without mutation] ***********
+skipping: [localhost]
+
+TASK [Docker: inspect installed Engine version (read-only)] ********************
+ok: [localhost]
+
+TASK [Docker: inspect installed Compose plugin version (read-only)] ************
+ok: [localhost]
+
+TASK [Docker: determine whether the approved runtime is already present] *******
+ok: [localhost]
+
+TASK [Docker: install prerequisite packages from Ubuntu repositories] **********
+skipping: [localhost]
+
+TASK [Docker: create official repository keyring directory] ********************
+skipping: [localhost]
+
+TASK [Docker: install official repository signing key] *************************
+skipping: [localhost]
+
+TASK [Docker: configure official Ubuntu 24.04 repository] **********************
+skipping: [localhost]
+
+TASK [Docker: resolve exact Engine 29.6.0 package version] *********************
+skipping: [localhost]
+
+TASK [Docker: fail if official repository has no Engine 29.6.0 package] ********
+skipping: [localhost]
+
+TASK [Docker: resolve exact matching docker-ce-cli package version] ************
+skipping: [localhost]
+
+TASK [Docker: fail if matching docker-ce-cli package is unavailable] ***********
+skipping: [localhost]
+
+TASK [Docker: resolve Compose plugin package in the approved 5.2.x line] *******
+skipping: [localhost]
+
+TASK [Docker: fail if approved Compose 5.2.x package is unavailable] ***********
+skipping: [localhost]
+
+TASK [Docker: install exact Engine 29.6.0 and Compose 5.2.x] *******************
+skipping: [localhost]
+
+TASK [Docker: enable and start Docker Engine] **********************************
+ok: [localhost]
+
+TASK [Docker: wait boundedly for the daemon] ***********************************
+ok: [localhost]
+
+TASK [Docker: enforce Engine 29.6.0] *******************************************
+ok: [localhost]
+
+TASK [Docker: enforce Compose plugin 5.2.x] ************************************
+ok: [localhost]
+
+TASK [Network: inspect korp-project-network (read-only)] ***********************
+ok: [localhost]
+
+TASK [Network: reject an existing non-bridge korp-project-network] *************
+skipping: [localhost]
+
+TASK [Network: create korp-project-network as an external bridge] **************
+changed: [localhost]
+
+TASK [Compose: validate the approved stack definition] *************************
+ok: [localhost]
+
+TASK [Compose: build the application image] ************************************
+changed: [localhost]
+
+TASK [Compose: start complete stack (Go, NGINX, Prometheus and Grafana)] *******
+changed: [localhost]
+
+TASK [NGINX/monitoring: show started stack components] *************************
+ok: [localhost]
+
+TASK [Validation: wait boundedly for GET /projeto-korp through host port 80] ***
+ok: [localhost]
+
+TASK [Validation: print returned JSON response] ********************************
+ok: [localhost] => {
+    "msg": "GET http://localhost:80/projeto-korp returned HTTP 200: {\"nome\":\"Projeto Korp\",\"horario\":\"2026-08-07T20:59:03Z\"}\n"
+}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=17   changed=3    unreachable=0    failed=0    skipped=14   rescued=0    ignored=0
+
+
+WP-07 Ansible exit code: 0

@@ -1,0 +1,356 @@
+---
+- name: Provision Projeto Korp
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+  vars:
+    project_root: "{{ playbook_dir | dirname | dirname }}"
+    compose_file: "{{ project_root }}/infra/compose/compose.yaml"
+    docker_ubuntu_codename: noble
+    docker_network_name: korp-project-network
+    required_docker_engine: "29.6.0"
+    required_compose_regex: "^5\\.2\\."
+    docker_keyring: /etc/apt/keyrings/docker.asc
+    docker_repository: "deb [arch=amd64 signed-by={{ docker_keyring }}] https://download.docker.com/linux/ubuntu {{ docker_ubuntu_codename }} stable"
+
+  tasks:
+    # BEH-PROVISIONING / STEP-PORT80: this is intentionally the first
+    # operational barrier. Everything before it is play parsing only.
+    - name: "Preflight: inspect host TCP port 80 (read-only)"
+      ansible.builtin.command:
+        argv:
+          - ss
+          - -H
+          - -ltnp
+          - "sport = :80"
+      register: port80_preflight
+      changed_when: false
+      failed_when: false
+
+    - name: "Preflight: collect current Docker workloads for diagnostics (read-only)"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - ps
+          - --format
+          - "{{ '{{.Names}} {{.Image}} {{.Ports}} {{.Status}}' }}"
+      register: docker_workloads_preflight
+      changed_when: false
+      failed_when: false
+      when: port80_preflight.rc == 0
+
+    - name: "Preflight: fail when port 80 cannot be inspected"
+      ansible.builtin.fail:
+        msg: >-
+          PORT 80 PREFLIGHT FAILED: cannot inspect host TCP port 80 with ss
+          (rc={{ port80_preflight.rc }}; stderr={{ port80_preflight.stderr | default('') | trim }}).
+          No package, Docker, network, Compose, or service mutation was attempted.
+      when: port80_preflight.rc != 0
+
+    - name: "Preflight: fail on occupied host TCP port 80 without mutation"
+      ansible.builtin.fail:
+        msg: >-
+          PORT 80 CONFLICT: host TCP port 80 is already occupied.
+          Listeners={{ port80_preflight.stdout | trim }}.
+          Docker workloads={{ docker_workloads_preflight.stdout | default('unavailable') | trim }}.
+          The existing service is preserved. No packages, Docker configuration,
+          networks, Compose workloads, or existing services will be changed.
+      when: port80_preflight.stdout | trim | length > 0
+
+    # BEH-PROVISIONING / STEP-DOCKER: all tasks below are unreachable when
+    # the non-destructive port-80 barrier fails.
+    - name: "Docker: inspect installed Engine version (read-only)"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - version
+          - --format
+          - "{{ '{{.Server.Version}}' }}"
+      register: docker_engine_version_check
+      changed_when: false
+      failed_when: false
+
+    - name: "Docker: inspect installed Compose plugin version (read-only)"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - version
+          - --short
+      register: docker_compose_version_check
+      changed_when: false
+      failed_when: false
+
+    - name: "Docker: determine whether the approved runtime is already present"
+      ansible.builtin.set_fact:
+        docker_runtime_ready: >-
+          {{ docker_engine_version_check.rc == 0 and
+             docker_engine_version_check.stdout | trim == required_docker_engine and
+             docker_compose_version_check.rc == 0 and
+             docker_compose_version_check.stdout | trim is match(required_compose_regex) }}
+
+    - name: "Docker: install prerequisite packages from Ubuntu repositories"
+      become: true
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+        update_cache: true
+      when: not docker_runtime_ready
+
+    - name: "Docker: create official repository keyring directory"
+      become: true
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      when: not docker_runtime_ready
+
+    - name: "Docker: install official repository signing key"
+      become: true
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: "{{ docker_keyring }}"
+        owner: root
+        group: root
+        mode: "0644"
+      when: not docker_runtime_ready
+
+    - name: "Docker: configure official Ubuntu 24.04 repository"
+      become: true
+      ansible.builtin.apt_repository:
+        repo: "{{ docker_repository }}"
+        filename: docker
+        state: present
+        update_cache: true
+      when: not docker_runtime_ready
+
+    - name: "Docker: resolve exact Engine 29.6.0 package version"
+      become: true
+      ansible.builtin.shell: >-
+        apt-cache madison docker-ce |
+        awk '$3 ~ /^5:29\\.6\\.0-/ { print $3; exit }'
+      args:
+        executable: /bin/bash
+      register: docker_ce_package_query
+      changed_when: false
+      when: not docker_runtime_ready
+
+    - name: "Docker: fail if official repository has no Engine 29.6.0 package"
+      ansible.builtin.fail:
+        msg: >-
+          Docker Engine 29.6.0 is unavailable from the configured official
+          Docker repository for Ubuntu 24.04 amd64.
+          apt-cache result={{ docker_ce_package_query.stdout | default('') | trim }}.
+          No incompatible Engine version will be selected.
+      when:
+        - not docker_runtime_ready
+        - docker_ce_package_query.stdout | trim | length == 0
+
+    - name: "Docker: resolve exact matching docker-ce-cli package version"
+      become: true
+      ansible.builtin.shell: >-
+        apt-cache madison docker-ce-cli |
+        awk '$3 ~ /^5:29\\.6\\.0-/ { print $3; exit }'
+      args:
+        executable: /bin/bash
+      register: docker_cli_package_query
+      changed_when: false
+      when: not docker_runtime_ready
+
+    - name: "Docker: fail if matching docker-ce-cli package is unavailable"
+      ansible.builtin.fail:
+        msg: >-
+          The matching docker-ce-cli package for Docker Engine 29.6.0 is
+          unavailable from the official repository; no incompatible version will be selected.
+      when:
+        - not docker_runtime_ready
+        - docker_cli_package_query.stdout | trim | length == 0
+
+    - name: "Docker: resolve Compose plugin package in the approved 5.2.x line"
+      become: true
+      ansible.builtin.shell: >-
+        apt-cache madison docker-compose-plugin |
+        awk '$3 ~ /(^|:)5\\.2\\./ { print $3; exit }'
+      args:
+        executable: /bin/bash
+      register: docker_compose_package_query
+      changed_when: false
+      when: not docker_runtime_ready
+
+    - name: "Docker: fail if approved Compose 5.2.x package is unavailable"
+      ansible.builtin.fail:
+        msg: >-
+          Docker Compose plugin 5.2.x is unavailable from the configured
+          official Docker repository; no incompatible plugin version will be selected.
+      when:
+        - not docker_runtime_ready
+        - docker_compose_package_query.stdout | trim | length == 0
+
+    - name: "Docker: install exact Engine 29.6.0 and Compose 5.2.x"
+      become: true
+      ansible.builtin.apt:
+        name:
+          - "docker-ce={{ docker_ce_package_query.stdout | trim }}"
+          - "docker-ce-cli={{ docker_cli_package_query.stdout | trim }}"
+          - "docker-compose-plugin={{ docker_compose_package_query.stdout | trim }}"
+          - containerd.io
+          - docker-buildx-plugin
+        state: present
+      when: not docker_runtime_ready
+
+    - name: "Docker: enable and start Docker Engine"
+      become: true
+      ansible.builtin.systemd_service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: "Docker: wait boundedly for the daemon"
+      become: true
+      ansible.builtin.command: docker info
+      register: docker_info_ready
+      changed_when: false
+      retries: 15
+      delay: 2
+      until: docker_info_ready.rc == 0
+
+    - name: "Docker: enforce Engine 29.6.0"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - version
+          - --format
+          - "{{ '{{.Server.Version}}' }}"
+      register: docker_engine_version_final
+      changed_when: false
+      failed_when: docker_engine_version_final.stdout | trim != required_docker_engine
+
+    - name: "Docker: enforce Compose plugin 5.2.x"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - version
+          - --short
+      register: docker_compose_version_final
+      changed_when: false
+      failed_when: docker_compose_version_final.stdout | trim is not match(required_compose_regex)
+
+    # BEH-PROVISIONING / STEP-NET: Ansible owns the external bridge network.
+    - name: "Network: inspect korp-project-network (read-only)"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - network
+          - inspect
+          - --format
+          - "{{ '{{.Driver}}' }}"
+          - "{{ docker_network_name }}"
+      register: korp_network_inspect
+      changed_when: false
+      failed_when: false
+
+    - name: "Network: reject an existing non-bridge korp-project-network"
+      ansible.builtin.fail:
+        msg: >-
+          Existing Docker network {{ docker_network_name }} has driver
+          {{ korp_network_inspect.stdout | trim }}, but the approved driver is bridge.
+          The existing network was not modified or recreated.
+      when:
+        - korp_network_inspect.rc == 0
+        - korp_network_inspect.stdout | trim != 'bridge'
+
+    - name: "Network: create korp-project-network as an external bridge"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - network
+          - create
+          - --driver
+          - bridge
+          - "{{ docker_network_name }}"
+      register: korp_network_create
+      changed_when: true
+      when: korp_network_inspect.rc != 0
+
+    # BEH-PROVISIONING / STEP-BUILD and STEP-COMPOSE: the approved Compose
+    # file remains the only deployment mechanism.
+    - name: "Compose: validate the approved stack definition"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - config
+      args:
+        chdir: "{{ project_root }}"
+      register: compose_config
+      changed_when: false
+
+    - name: "Compose: build the application image"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - build
+          - http-server-projeto-korp
+      args:
+        chdir: "{{ project_root }}"
+      register: compose_build
+      changed_when: true
+
+    - name: "Compose: start complete stack (Go, NGINX, Prometheus and Grafana)"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - up
+          - -d
+      args:
+        chdir: "{{ project_root }}"
+      register: compose_up
+      changed_when: true
+
+    - name: "NGINX/monitoring: show started stack components"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - ps
+          - nginx
+          - prometheus
+          - grafana
+          - http-server-projeto-korp
+      args:
+        chdir: "{{ project_root }}"
+      register: stack_status
+      changed_when: false
+
+    # BEH-PROVISIONING / STEP-VERIFY and STEP-OUTPUT.
+    - name: "Validation: wait boundedly for GET /projeto-korp through host port 80"
+      ansible.builtin.uri:
+        url: http://localhost:80/projeto-korp
+        method: GET
+        status_code: 200
+        return_content: true
+      register: http_validation
+      retries: 30
+      delay: 2
+      until: http_validation.status == 200
+
+    - name: "Validation: print returned JSON response"
+      ansible.builtin.debug:
+        msg: "GET http://localhost:80/projeto-korp returned HTTP {{ http_validation.status }}: {{ http_validation.content }}"
