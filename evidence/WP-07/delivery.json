@@ -1,11 +1,20 @@
 {
-  "origin": null,
-  "remoteOutput": "git remote -v returned no entries",
-  "publicGithubRepository": "not-verifiable",
+  "repository": "Magaldes/korp-platform-engineering",
+  "publicUrl": "https://github.com/Magaldes/korp-platform-engineering",
+  "visibility": "public",
+  "defaultBranch": "main",
+  "origin": "https://github.com/Magaldes/korp-platform-engineering.git",
+  "localBranch": "main",
+  "localCommit": "4f80c8c",
+  "publicReachability": "not-verifiable-after-push",
+  "verificationStatus": "blocked",
   "status": "blocker",
+  "resolvedPreviousBlocker": "DELIVERY-ORIGIN-MISSING",
   "blocker": {
-    "id": "DELIVERY-ORIGIN-MISSING",
-    "description": "No Git remote named origin is configured; public GitHub reachability cannot be verified.",
-    "actionTaken": "None. No repository was created, no visibility was changed, and no commit or push was performed."
+    "id": "DELIVERY-HTTPS-AUTH",
+    "description": "Normal push to origin/main could not read HTTPS credentials in the environment.",
+    "command": "git push -u origin main",
+    "error": "fatal: could not read Username for 'https://github.com': No such device or address",
+    "actionTaken": "No credentials, credential helper, repository visibility, or security setting was changed."
   }
 }
