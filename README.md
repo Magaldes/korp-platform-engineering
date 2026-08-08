@@ -1,18 +1,10 @@
-# korp-platform-engineering
+# Projeto Korp
 
-Platform engineering project built with Go, Docker, NGINX, Prometheus, Grafana and Ansible, featuring automated provisioning, observability and architecture-driven delivery.
-
-## Projeto Korp
-
-Serviço HTTP em Go com proxy NGINX, métricas Prometheus, dashboard Grafana,
-rede Docker bridge e provisionamento automatizado por Ansible.
+Projeto de serviço HTTP que inclui um proxy NGINX, observabilidade de métricas do Prometheus em um dashboard do Grafana, uma rede Docker Bridge e provisionamento automatizado via Ansible.
 
 ## Estado deste checkpoint
 
-Este repositório contém a implementação validada, os arquivos de execução,
-testes, documentação técnica e evidências finais. A baseline arquitetural
-aprovada é registrada em `agent-packages/` apenas no workspace interno e não é
-publicada neste repositório.
+Este repositório contém a implementação validada, os arquivos de execução, testes, documentação técnica e evidências finais.
 
 Decisões aprovadas:
 
