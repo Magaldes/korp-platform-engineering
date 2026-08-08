@@ -1,4 +1,4 @@
-# Projeto Korp
+# Projeto Korp DevOps Challenge
 
 Projeto de serviço HTTP que inclui um proxy NGINX, observabilidade de métricas do Prometheus em um dashboard do Grafana, uma rede Docker Bridge e provisionamento automatizado via Ansible.
 
