@@ -21,8 +21,13 @@ coverage.out
 *.retry
 automation/ansible/.cache/
 
-# Local evidence generated during demonstrations
-evidence/generated/
-
-# Internal agent control artifacts; kept locally, never published
+# Local operational and agent artifacts
+/evidence/
 /agent-packages/
+/agent-packages.7z
+/traffic-demo.sh
+
+# Only rendered architecture documentation is public under docs/
+/docs/*
+!/docs/architecture/
+!/docs/architecture/**

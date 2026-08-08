@@ -11,3 +11,8 @@ Decisões aprovadas:
 - DEC-004: a bridge Docker é criada pelo Ansible e consumida pelo Compose como rede externa.
 - DEC-005: datasource e dashboard do Grafana são artefatos versionados e provisionados automaticamente.
 - DEC-006: `horario` usa timestamp UTC em RFC3339.
+
+## Documentação e artefatos locais
+
+A documentação arquitetural do projeto está em `docs/architecture/`.
+Evidências de execução e artefatos operacionais internos permanecem somente no workspace local.
