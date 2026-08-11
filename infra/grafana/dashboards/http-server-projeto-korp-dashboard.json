@@ -2,31 +2,145 @@
   "uid": "korp-observability",
   "title": "Projeto Korp - Observability",
   "schemaVersion": 41,
-  "version": 1,
+  "version": 2,
   "refresh": "5s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
   "panels": [
     {
       "id": 1,
-      "title": "Availability",
+      "title": "Service Availability",
+      "description": "Is Prometheus currently able to scrape the HTTP service?",
       "type": "stat",
-      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 0},
+      "gridPos": {"h": 7, "w": 6, "x": 0, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [{"type": "value", "options": {"0": {"text": "DOWN"}, "1": {"text": "UP"}}}],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        },
+        "overrides": []
+      },
       "targets": [{"refId": "A", "expr": "up{job=\"http-server-projeto-korp\"}", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
       "datasource": {"type": "prometheus", "uid": "prometheus"}
     },
     {
       "id": 2,
-      "title": "Request Total",
+      "title": "Availability Over Selected Period",
+      "description": "Average scrape availability across the selected dashboard range.",
       "type": "stat",
-      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 0},
-      "targets": [{"refId": "A", "expr": "sum(projeto_korp_http_requests_total)", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
+      "gridPos": {"h": 7, "w": 6, "x": 6, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 2,
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 99.9}]}
+        },
+        "overrides": []
+      },
+      "targets": [{"refId": "A", "expr": "avg_over_time(up{job=\"http-server-projeto-korp\"}[$__range]) * 100", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
       "datasource": {"type": "prometheus", "uid": "prometheus"}
     },
     {
       "id": 3,
+      "title": "Requests During Selected Period",
+      "description": "Total application requests observed during the selected dashboard range.",
+      "type": "stat",
+      "gridPos": {"h": 7, "w": 6, "x": 12, "y": 0},
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0}, "overrides": []},
+      "targets": [{"refId": "A", "expr": "sum(increase(projeto_korp_http_requests_total[$__range]))", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
+      "datasource": {"type": "prometheus", "uid": "prometheus"}
+    },
+    {
+      "id": 4,
       "title": "Request Rate",
+      "description": "How quickly the application is receiving requests now.",
       "type": "timeseries",
-      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 0},
-      "targets": [{"refId": "A", "expr": "sum(rate(projeto_korp_http_requests_total[1m]))", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 7},
+      "fieldConfig": {"defaults": {"unit": "reqps", "decimals": 2}, "overrides": []},
+      "targets": [{"refId": "A", "expr": "sum(rate(projeto_korp_http_requests_total[$__rate_interval]))", "legendFormat": "all requests", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
+      "datasource": {"type": "prometheus", "uid": "prometheus"}
+    },
+    {
+      "id": 5,
+      "title": "Requests by HTTP Status",
+      "description": "Which HTTP outcomes are being produced by the test traffic?",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 7},
+      "fieldConfig": {"defaults": {"unit": "reqps", "decimals": 2}, "overrides": []},
+      "targets": [{"refId": "A", "expr": "sum by (status) (rate(projeto_korp_http_requests_total[$__rate_interval]))", "legendFormat": "HTTP {{status}}", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
+      "datasource": {"type": "prometheus", "uid": "prometheus"}
+    },
+    {
+      "id": 6,
+      "title": "Expected 404 - Unmatched Route",
+      "description": "Confirms that unknown paths are classified as route=unmatched.",
+      "type": "stat",
+      "gridPos": {"h": 7, "w": 8, "x": 0, "y": 15},
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0}, "overrides": []},
+      "targets": [{"refId": "A", "expr": "sum(increase(projeto_korp_http_requests_total{route=\"unmatched\",status=\"404\"}[$__range]))", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
+      "datasource": {"type": "prometheus", "uid": "prometheus"}
+    },
+    {
+      "id": 7,
+      "title": "Expected 405 - Invalid Method",
+      "description": "Confirms that an unsupported method on the project route is visible.",
+      "type": "stat",
+      "gridPos": {"h": 7, "w": 8, "x": 8, "y": 15},
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0}, "overrides": []},
+      "targets": [{"refId": "A", "expr": "sum(increase(projeto_korp_http_requests_total{route=\"/projeto-korp\",status=\"405\"}[$__range]))", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
+      "datasource": {"type": "prometheus", "uid": "prometheus"}
+    },
+    {
+      "id": 8,
+      "title": "Prometheus Scrape Duration",
+      "description": "How long the Prometheus scrape of the HTTP service takes.",
+      "type": "timeseries",
+      "gridPos": {"h": 7, "w": 8, "x": 16, "y": 15},
+      "fieldConfig": {"defaults": {"unit": "s", "decimals": 4}, "overrides": []},
+      "targets": [{"refId": "A", "expr": "scrape_duration_seconds{job=\"http-server-projeto-korp\"}", "legendFormat": "scrape duration", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
+      "datasource": {"type": "prometheus", "uid": "prometheus"}
+    },
+    {
+      "id": 9,
+      "title": "Statistics Cache Hit Ratio",
+      "description": "Ratio of statistics cache lookups that returned a valid cached result.",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 22},
+      "fieldConfig": {"defaults": {"unit": "percent", "decimals": 2}, "overrides": []},
+      "targets": [{"refId": "A", "expr": "sum(rate(projeto_korp_statistics_cache_operations_total{operation=\"lookup\",result=\"hit\"}[$__rate_interval])) / clamp_min(sum(rate(projeto_korp_statistics_cache_operations_total{operation=\"lookup\"}[$__rate_interval])), 1e-9) * 100", "legendFormat": "hit ratio", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
+      "datasource": {"type": "prometheus", "uid": "prometheus"}
+    },
+    {
+      "id": 10,
+      "title": "Statistics Cache Results",
+      "description": "Statistics cache hit, miss, error and write outcomes.",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 22},
+      "fieldConfig": {"defaults": {"unit": "ops", "decimals": 2}, "overrides": []},
+      "targets": [{"refId": "A", "expr": "sum by (operation, result) (rate(projeto_korp_statistics_cache_operations_total[$__rate_interval]))", "legendFormat": "{{operation}} {{result}}", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
+      "datasource": {"type": "prometheus", "uid": "prometheus"}
+    },
+    {
+      "id": 11,
+      "title": "Data Dependency Operation Duration",
+      "description": "Application-boundary duration for PostgreSQL dependency operations.",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 30},
+      "fieldConfig": {"defaults": {"unit": "s", "decimals": 4}, "overrides": []},
+      "targets": [{"refId": "A", "expr": "histogram_quantile(0.95, sum by (le, dependency, operation) (rate(projeto_korp_data_dependency_operation_duration_seconds_bucket[$__rate_interval])))", "legendFormat": "p95 {{dependency}} {{operation}}", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
+      "datasource": {"type": "prometheus", "uid": "prometheus"}
+    },
+    {
+      "id": 12,
+      "title": "Data Dependency Errors",
+      "description": "Application-boundary dependency errors, including PostgreSQL fallback failures.",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 30},
+      "fieldConfig": {"defaults": {"unit": "ops", "decimals": 2}, "overrides": []},
+      "targets": [{"refId": "A", "expr": "sum by (dependency, operation) (rate(projeto_korp_data_dependency_operations_total{result=\"error\"}[$__rate_interval]))", "legendFormat": "{{dependency}} {{operation}}", "datasource": {"type": "prometheus", "uid": "prometheus"}}],
       "datasource": {"type": "prometheus", "uid": "prometheus"}
     }
   ]

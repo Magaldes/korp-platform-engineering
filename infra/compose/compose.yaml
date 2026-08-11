@@ -6,6 +6,49 @@ services:
     image: http-server-projeto-korp:local
     expose:
       - "8080"
+    env_file:
+      - .env.local
+    networks:
+      - korp-project-network
+
+  postgres:
+    image: postgres:18.4-trixie
+    env_file:
+      - .env.local
+    expose:
+      - "5432"
+    volumes:
+      - korp-postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 5s
+    networks:
+      - korp-project-network
+
+  postgres-migrate:
+    image: migrate/migrate:v4.19.1
+    env_file:
+      - .env.local
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["migrate -path=/migrations -database=postgres://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@postgres:5432/$${POSTGRES_DB}?sslmode=disable up"]
+    volumes:
+      - ../../infra/postgres/migrations:/migrations:ro
+    networks:
+      - korp-project-network
+
+  redis:
+    image: redis:8.8.1-trixie
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 3s
     networks:
       - korp-project-network
 
@@ -42,3 +85,6 @@ services:
 networks:
   korp-project-network:
     external: true
+
+volumes:
+  korp-postgres-data:

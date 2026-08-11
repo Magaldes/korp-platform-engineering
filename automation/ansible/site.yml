@@ -7,10 +7,15 @@
   vars:
     project_root: "{{ playbook_dir | dirname | dirname }}"
     compose_file: "{{ project_root }}/infra/compose/compose.yaml"
+    postgres_service: postgres
+    migration_service: postgres-migrate
+    redis_service: redis
     docker_ubuntu_codename: noble
     docker_network_name: korp-project-network
-    required_docker_engine: "29.6.0"
-    required_compose_regex: "^5\\.2\\."
+    required_docker_engine: "29.7.2"
+    required_compose_version: "5.4.0"
+    required_docker_package_pattern: "(^|:)29[.]7[.]2($|-)"
+    required_compose_package_pattern: "(^|:)5[.]4[.]0($|-)"
     docker_keyring: /etc/apt/keyrings/docker.asc
     docker_repository: "deb [arch=amd64 signed-by={{ docker_keyring }}] https://download.docker.com/linux/ubuntu {{ docker_ubuntu_codename }} stable"
 
@@ -40,6 +45,23 @@
       failed_when: false
       when: port80_preflight.rc == 0
 
+    - name: "Preflight: identify the existing Korp NGINX listener (read-only)"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - ps
+          - -q
+          - nginx
+      args:
+        chdir: "{{ project_root }}"
+      register: korp_nginx_preflight
+      changed_when: false
+      failed_when: false
+      when: port80_preflight.rc == 0
+
     - name: "Preflight: fail when port 80 cannot be inspected"
       ansible.builtin.fail:
         msg: >-
@@ -56,7 +78,9 @@
           Docker workloads={{ docker_workloads_preflight.stdout | default('unavailable') | trim }}.
           The existing service is preserved. No packages, Docker configuration,
           networks, Compose workloads, or existing services will be changed.
-      when: port80_preflight.stdout | trim | length > 0
+      when:
+        - port80_preflight.stdout | trim | length > 0
+        - korp_nginx_preflight.stdout | trim | length == 0
 
     # BEH-PROVISIONING / STEP-DOCKER: all tasks below are unreachable when
     # the non-destructive port-80 barrier fails.
@@ -88,7 +112,27 @@
           {{ docker_engine_version_check.rc == 0 and
              docker_engine_version_check.stdout | trim == required_docker_engine and
              docker_compose_version_check.rc == 0 and
-             docker_compose_version_check.stdout | trim is match(required_compose_regex) }}
+             docker_compose_version_check.stdout | trim == required_compose_version }}
+
+    - name: "Docker: reject an installed Engine version requiring human decision"
+      ansible.builtin.fail:
+        msg: >-
+          Docker Engine {{ docker_engine_version_check.stdout | default('unavailable') | trim }}
+          is installed, but the approved version is {{ required_docker_engine }}.
+          Silent upgrade or downgrade is forbidden; human decision is required.
+      when:
+        - docker_engine_version_check.rc == 0
+        - docker_engine_version_check.stdout | trim != required_docker_engine
+
+    - name: "Docker: reject an installed Compose version requiring human decision"
+      ansible.builtin.fail:
+        msg: >-
+          Docker Compose plugin {{ docker_compose_version_check.stdout | default('unavailable') | trim }}
+          is installed, but the approved version is {{ required_compose_version }}.
+          Silent upgrade or downgrade is forbidden; human decision is required.
+      when:
+        - docker_compose_version_check.rc == 0
+        - docker_compose_version_check.stdout | trim != required_compose_version
 
     - name: "Docker: install prerequisite packages from Ubuntu repositories"
       become: true
@@ -130,21 +174,24 @@
         update_cache: true
       when: not docker_runtime_ready
 
-    - name: "Docker: resolve exact Engine 29.6.0 package version"
+    - name: "Docker: resolve exact approved Engine package version"
       become: true
       ansible.builtin.shell: >-
         apt-cache madison docker-ce |
-        awk '$3 ~ /^5:29\\.6\\.0-/ { print $3; exit }'
+        awk -F'|' -v approved="{{ required_docker_engine }}"
+        -v pattern="{{ required_docker_package_pattern }}"
+        'function trim(value) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", value); return value }
+         { version=trim($2); if (version ~ pattern) { print version; exit } }'
       args:
         executable: /bin/bash
       register: docker_ce_package_query
       changed_when: false
       when: not docker_runtime_ready
 
-    - name: "Docker: fail if official repository has no Engine 29.6.0 package"
+    - name: "Docker: fail if official repository has no approved Engine package"
       ansible.builtin.fail:
         msg: >-
-          Docker Engine 29.6.0 is unavailable from the configured official
+          Docker Engine {{ required_docker_engine }} is unavailable from the configured official
           Docker repository for Ubuntu 24.04 amd64.
           apt-cache result={{ docker_ce_package_query.stdout | default('') | trim }}.
           No incompatible Engine version will be selected.
@@ -156,7 +203,10 @@
       become: true
       ansible.builtin.shell: >-
         apt-cache madison docker-ce-cli |
-        awk '$3 ~ /^5:29\\.6\\.0-/ { print $3; exit }'
+        awk -F'|' -v approved="{{ required_docker_engine }}"
+        -v pattern="{{ required_docker_package_pattern }}"
+        'function trim(value) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", value); return value }
+         { version=trim($2); if (version ~ pattern) { print version; exit } }'
       args:
         executable: /bin/bash
       register: docker_cli_package_query
@@ -166,17 +216,20 @@
     - name: "Docker: fail if matching docker-ce-cli package is unavailable"
       ansible.builtin.fail:
         msg: >-
-          The matching docker-ce-cli package for Docker Engine 29.6.0 is
+          The matching docker-ce-cli package for Docker Engine {{ required_docker_engine }} is
           unavailable from the official repository; no incompatible version will be selected.
       when:
         - not docker_runtime_ready
         - docker_cli_package_query.stdout | trim | length == 0
 
-    - name: "Docker: resolve Compose plugin package in the approved 5.2.x line"
+    - name: "Docker: resolve Compose plugin package in the approved version"
       become: true
       ansible.builtin.shell: >-
         apt-cache madison docker-compose-plugin |
-        awk '$3 ~ /(^|:)5\\.2\\./ { print $3; exit }'
+        awk -F'|' -v approved="{{ required_compose_version }}"
+        -v pattern="{{ required_compose_package_pattern }}"
+        'function trim(value) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", value); return value }
+         { version=trim($2); if (version ~ pattern) { print version; exit } }'
       args:
         executable: /bin/bash
       register: docker_compose_package_query
@@ -186,13 +239,13 @@
     - name: "Docker: fail if approved Compose 5.2.x package is unavailable"
       ansible.builtin.fail:
         msg: >-
-          Docker Compose plugin 5.2.x is unavailable from the configured
+          Docker Compose plugin {{ required_compose_version }} is unavailable from the configured
           official Docker repository; no incompatible plugin version will be selected.
       when:
         - not docker_runtime_ready
         - docker_compose_package_query.stdout | trim | length == 0
 
-    - name: "Docker: install exact Engine 29.6.0 and Compose 5.2.x"
+    - name: "Docker: install exact approved Engine and Compose versions"
       become: true
       ansible.builtin.apt:
         name:
@@ -220,7 +273,7 @@
       delay: 2
       until: docker_info_ready.rc == 0
 
-    - name: "Docker: enforce Engine 29.6.0"
+    - name: "Docker: enforce approved Engine version"
       ansible.builtin.command:
         argv:
           - docker
@@ -231,7 +284,7 @@
       changed_when: false
       failed_when: docker_engine_version_final.stdout | trim != required_docker_engine
 
-    - name: "Docker: enforce Compose plugin 5.2.x"
+    - name: "Docker: enforce approved Compose plugin version"
       ansible.builtin.command:
         argv:
           - docker
@@ -240,7 +293,7 @@
           - --short
       register: docker_compose_version_final
       changed_when: false
-      failed_when: docker_compose_version_final.stdout | trim is not match(required_compose_regex)
+      failed_when: docker_compose_version_final.stdout | trim != required_compose_version
 
     # BEH-PROVISIONING / STEP-NET: Ansible owns the external bridge network.
     - name: "Network: inspect korp-project-network (read-only)"
@@ -308,7 +361,7 @@
       register: compose_build
       changed_when: true
 
-    - name: "Compose: start complete stack (Go, NGINX, Prometheus and Grafana)"
+    - name: "Compose: start PostgreSQL before application services"
       ansible.builtin.command:
         argv:
           - docker
@@ -317,10 +370,167 @@
           - "{{ compose_file }}"
           - up
           - -d
+          - postgres
+      args:
+        chdir: "{{ project_root }}"
+      register: postgres_up
+      changed_when: true
+
+    - name: "Compose: start Redis cache service"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - up
+          - -d
+          - "{{ redis_service }}"
+      args:
+        chdir: "{{ project_root }}"
+      register: redis_up
+      changed_when: true
+
+    - name: "Redis: wait boundedly for cache readiness"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - exec
+          - -T
+          - "{{ redis_service }}"
+          - redis-cli
+          - ping
+      args:
+        chdir: "{{ project_root }}"
+      register: redis_ready
+      changed_when: false
+      retries: 30
+      delay: 2
+      until: redis_ready.rc == 0 and redis_ready.stdout | trim == 'PONG'
+
+    - name: "PostgreSQL: wait boundedly for database readiness"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - exec
+          - -T
+          - "{{ postgres_service }}"
+          - pg_isready
+          - -U
+          - "{{ lookup('env', 'POSTGRES_USER') | default('korp', true) }}"
+      args:
+        chdir: "{{ project_root }}"
+      register: postgres_ready
+      changed_when: false
+      retries: 30
+      delay: 2
+      until: postgres_ready.rc == 0
+
+    - name: "PostgreSQL: run versioned migrations"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - run
+          - --rm
+          - "{{ migration_service }}"
+      args:
+        chdir: "{{ project_root }}"
+      register: migration_run
+      changed_when: true
+
+    - name: "Compose: start application and observability services after migration"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - up
+          - -d
+          - --force-recreate
+          - http-server-projeto-korp
+          - prometheus
+          - grafana
       args:
         chdir: "{{ project_root }}"
       register: compose_up
       changed_when: true
+
+    - name: "Compose: inspect the recreated Go application container"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - ps
+          - -q
+          - http-server-projeto-korp
+      args:
+        chdir: "{{ project_root }}"
+      register: application_container
+      changed_when: false
+
+    - name: "Compose: wait for the Go application container"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - inspect
+          - --format
+          - "{{ '{{.State.Running}}' }}"
+          - "{{ application_container.stdout | trim }}"
+      register: application_running
+      changed_when: false
+      retries: 15
+      delay: 2
+      until:
+        - application_container.stdout | trim | length > 0
+        - application_running.rc == 0
+        - application_running.stdout | trim == 'true'
+
+    - name: "Compose: start NGINX after the Go application is registered"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - up
+          - -d
+          - --force-recreate
+          - nginx
+      args:
+        chdir: "{{ project_root }}"
+      register: nginx_up
+      changed_when: true
+
+    - name: "Validation: verify extended stack service status"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - ps
+          - postgres
+          - redis
+          - http-server-projeto-korp
+          - nginx
+          - prometheus
+          - grafana
+      args:
+        chdir: "{{ project_root }}"
+      register: extended_stack_status
+      changed_when: false
 
     - name: "NGINX/monitoring: show started stack components"
       ansible.builtin.command:

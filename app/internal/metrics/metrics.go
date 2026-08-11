@@ -3,6 +3,7 @@ package metrics
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -14,10 +15,21 @@ const (
 	projectPath = "/projeto-korp"
 )
 
+const (
+	cacheOperationsMetric      = "projeto_korp_statistics_cache_operations_total"
+	cacheDurationMetric        = "projeto_korp_statistics_cache_operation_duration_seconds"
+	dependencyOperationsMetric = "projeto_korp_data_dependency_operations_total"
+	dependencyDurationMetric   = "projeto_korp_data_dependency_operation_duration_seconds"
+)
+
 // Component owns application request metrics and their Prometheus exposition.
 type Component struct {
-	requests *prometheus.CounterVec
-	registry *prometheus.Registry
+	requests             *prometheus.CounterVec
+	cacheOperations      *prometheus.CounterVec
+	cacheDuration        *prometheus.HistogramVec
+	dependencyOperations *prometheus.CounterVec
+	dependencyDuration   *prometheus.HistogramVec
+	registry             *prometheus.Registry
 }
 
 // New creates an isolated metrics registry for one application instance.
@@ -29,13 +41,37 @@ func New() *Component {
 		},
 		[]string{"method", "route", "status"},
 	)
+	cacheOperations := prometheus.NewCounterVec(prometheus.CounterOpts{Name: cacheOperationsMetric, Help: "Statistics cache operation outcomes."}, []string{"operation", "result"})
+	cacheDuration := prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: cacheDurationMetric, Help: "Statistics cache operation duration in seconds."}, []string{"operation"})
+	dependencyOperations := prometheus.NewCounterVec(prometheus.CounterOpts{Name: dependencyOperationsMetric, Help: "Application data dependency operation outcomes."}, []string{"dependency", "operation", "result"})
+	dependencyDuration := prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: dependencyDurationMetric, Help: "Application data dependency operation duration in seconds."}, []string{"dependency", "operation"})
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(requests)
+	registry.MustRegister(cacheOperations, cacheDuration, dependencyOperations, dependencyDuration)
 
 	return &Component{
-		requests: requests,
-		registry: registry,
+		requests:             requests,
+		cacheOperations:      cacheOperations,
+		cacheDuration:        cacheDuration,
+		dependencyOperations: dependencyOperations,
+		dependencyDuration:   dependencyDuration,
+		registry:             registry,
 	}
+}
+
+func (c *Component) ObserveCacheLookup(result string, duration time.Duration) {
+	c.cacheOperations.WithLabelValues("lookup", result).Inc()
+	c.cacheDuration.WithLabelValues("lookup").Observe(duration.Seconds())
+}
+
+func (c *Component) ObserveCacheWrite(result string, duration time.Duration) {
+	c.cacheOperations.WithLabelValues("write", result).Inc()
+	c.cacheDuration.WithLabelValues("write").Observe(duration.Seconds())
+}
+
+func (c *Component) ObserveRepository(operation, result string, duration time.Duration) {
+	c.dependencyOperations.WithLabelValues("postgresql", operation, result).Inc()
+	c.dependencyDuration.WithLabelValues("postgresql", operation).Observe(duration.Seconds())
 }
 
 // Handler exposes /metrics and instruments the application router.
