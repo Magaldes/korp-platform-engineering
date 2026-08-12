@@ -1,0 +1,3417 @@
+{
+  "schemaVersion": "operational-architecture-package/2.0",
+  "packageId": "ARCH-KORP-001",
+  "workspace": {
+    "revision": 6,
+    "status": "editing"
+  },
+  "project": {
+    "projectId": "PRJ-PROJETO-KORP-DEVOPS-CHALLENGE",
+    "name": "Projeto Korp DevOps Challenge",
+    "purpose": "Modelar e governar a arquitetura pre-codebase do desafio Korp, preservando rastreabilidade entre requisitos, criterios de aceite, decisoes, componentes e validacao.",
+    "scope": {
+      "in": [
+        "Servico HTTP em Golang com GET /projeto-korp e horario UTC dinamico",
+        "Dockerfile e execucao em containers",
+        "Rede Docker bridge e Docker Compose",
+        "NGINX como reverse proxy na porta 80 do host",
+        "Metricas de disponibilidade e volume de requisicoes em padrao Prometheus",
+        "Prometheus e Grafana com dashboard",
+        "Provisionamento integral via Ansible e validacao HTTP",
+        "Documentacao e arquivos em repositorio publico GitHub"
+      ],
+      "out": [
+        "Banco de dados ou persistencia de negocio",
+        "Frontend dedicado",
+        "Autenticacao e autorizacao",
+        "Kubernetes, Terraform ou cloud provider",
+        "Mensageria",
+        "TLS, dominio publico ou API Gateway",
+        "CI/CD como requisito obrigatorio"
+      ]
+    }
+  },
+  "semanticCatalog": {
+    "actors": [
+      {
+        "id": "ACT-CANDIDATE",
+        "name": "Candidate Operator",
+        "actorKind": "human",
+        "classification": "declared",
+        "description": "Executa o provisionamento, valida a solucao e apresenta as escolhas tecnicas."
+      },
+      {
+        "id": "ACT-EVALUATOR",
+        "name": "Korp Evaluator",
+        "actorKind": "human",
+        "classification": "declared",
+        "description": "Executa ou observa a demonstracao tecnica e valida os criterios do desafio."
+      }
+    ],
+    "requirements": [
+      {
+        "id": "SVC-001",
+        "title": "Implementar servidor HTTP em Golang",
+        "statement": "Implementar servidor HTTP em Golang.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Aplicação compilável e executável em Go."
+      },
+      {
+        "id": "SVC-002",
+        "title": "O serviço deve se chamar `http-server-projeto-korp`",
+        "statement": "O serviço deve se chamar `http-server-projeto-korp`.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Nome visível na configuração/projeto/container conforme aplicável."
+      },
+      {
+        "id": "SVC-003",
+        "title": "O serviço deve receber requisições na porta `8080`",
+        "statement": "O serviço deve receber requisições na porta `8080`.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Processo escutando na porta 8080 dentro do ambiente de execução."
+      },
+      {
+        "id": "SVC-004",
+        "title": "Implementar `GET /projeto-korp`",
+        "statement": "Implementar `GET /projeto-korp`.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Requisição GET retorna resposta válida."
+      },
+      {
+        "id": "SVC-005",
+        "title": "Retornar JSON com `nome` e `horario`",
+        "statement": "Retornar JSON com `nome` e `horario`.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Corpo JSON possui os dois campos."
+      },
+      {
+        "id": "SVC-006",
+        "title": "`nome` deve ser `Projeto Korp`",
+        "statement": "`nome` deve ser `Projeto Korp`.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Valor exato no JSON."
+      },
+      {
+        "id": "SVC-007",
+        "title": "`horario` deve representar horário atual UTC",
+        "statement": "`horario` deve representar horário atual UTC.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Horário retornado é UTC."
+      },
+      {
+        "id": "SVC-008",
+        "title": "O horário deve ser resolvido dinamicamente a cada requisição",
+        "statement": "O horário deve ser resolvido dinamicamente a cada requisição.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Requisições em instantes diferentes geram horários atualizados."
+      },
+      {
+        "id": "SVC-009",
+        "title": "Criar Dockerfile que faça build e permita executar a aplicação em container",
+        "statement": "Criar Dockerfile que faça build e permita executar a aplicação em container.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Imagem construída e container funcional."
+      },
+      {
+        "id": "INF-001",
+        "title": "Usar ambiente Linux",
+        "statement": "Usar ambiente Linux.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Host/provisionamento alvo é Linux."
+      },
+      {
+        "id": "INF-002",
+        "title": "Instalar e configurar Docker",
+        "statement": "Instalar e configurar Docker.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Docker operacional no ambiente alvo."
+      },
+      {
+        "id": "INF-003",
+        "title": "Criar rede Docker em modo bridge",
+        "statement": "Criar rede Docker em modo bridge.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Rede bridge existente e utilizada pelos containers."
+      },
+      {
+        "id": "INF-004",
+        "title": "Usar Docker Compose",
+        "statement": "Usar Docker Compose.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Arquivo Compose válido e executável."
+      },
+      {
+        "id": "INF-005",
+        "title": "Container da aplicação baseado na imagem construída",
+        "statement": "Container da aplicação baseado na imagem construída.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Serviço Compose usa a imagem do projeto."
+      },
+      {
+        "id": "INF-006",
+        "title": "Container da aplicação conectado à rede criada",
+        "statement": "Container da aplicação conectado à rede criada.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Inspeção da rede confirma associação."
+      },
+      {
+        "id": "INF-007",
+        "title": "Aplicação não deve publicar porta diretamente no host",
+        "statement": "Aplicação não deve publicar porta diretamente no host.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Não existe mapeamento host→8080 para a aplicação."
+      },
+      {
+        "id": "INF-008",
+        "title": "Executar container NGINX a partir da imagem oficial",
+        "statement": "Executar container NGINX a partir da imagem oficial.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Compose referencia imagem oficial do NGINX."
+      },
+      {
+        "id": "INF-009",
+        "title": "NGINX conectado à mesma rede da aplicação",
+        "statement": "NGINX conectado à mesma rede da aplicação.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Ambos aparecem na mesma rede Docker."
+      },
+      {
+        "id": "INF-010",
+        "title": "Mapear porta 80 do host para porta 80 do NGINX",
+        "statement": "Mapear porta 80 do host para porta 80 do NGINX.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "`localhost:80` alcança NGINX."
+      },
+      {
+        "id": "INF-011",
+        "title": "Montar volume em `/etc/nginx/conf.d/`",
+        "statement": "Montar volume em `/etc/nginx/conf.d/`.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Configuração do proxy é disponibilizada nesse caminho."
+      },
+      {
+        "id": "INF-012",
+        "title": "Criar `http-server-projeto-korp.conf`",
+        "statement": "Criar `http-server-projeto-korp.conf`.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Arquivo existe no volume montado."
+      },
+      {
+        "id": "INF-013",
+        "title": "NGINX deve encaminhar requisições de `localhost:80` ao serviço na porta 8080",
+        "statement": "NGINX deve encaminhar requisições de `localhost:80` ao serviço na porta 8080.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Chamada via NGINX chega à aplicação."
+      },
+      {
+        "id": "INF-014",
+        "title": "`curl http://localhost:80/projeto-korp` deve retornar o JSON do serviço",
+        "statement": "`curl http://localhost:80/projeto-korp` deve retornar o JSON do serviço.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Comando executa com sucesso e retorna payload esperado."
+      },
+      {
+        "id": "OBS-001",
+        "title": "Monitorar disponibilidade do serviço",
+        "statement": "Monitorar disponibilidade do serviço.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Existe métrica/evidência coletável que represente disponibilidade."
+      },
+      {
+        "id": "OBS-002",
+        "title": "Monitorar volume de requisições",
+        "statement": "Monitorar volume de requisições.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Existe métrica que permite contar/analisar requisições."
+      },
+      {
+        "id": "OBS-003",
+        "title": "Métricas devem ser expostas no padrão Prometheus",
+        "statement": "Métricas devem ser expostas no padrão Prometheus.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Prometheus consegue coletar os dados expostos."
+      },
+      {
+        "id": "OBS-004",
+        "title": "Adicionar Prometheus ao Compose",
+        "statement": "Adicionar Prometheus ao Compose.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Container Prometheus presente e funcional."
+      },
+      {
+        "id": "OBS-005",
+        "title": "Adicionar Grafana ao Compose",
+        "statement": "Adicionar Grafana ao Compose.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Container Grafana presente e funcional."
+      },
+      {
+        "id": "OBS-006",
+        "title": "Configurar Prometheus para coletar métricas do serviço",
+        "statement": "Configurar Prometheus para coletar métricas do serviço.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Target de coleta funciona e possui amostras."
+      },
+      {
+        "id": "OBS-007",
+        "title": "Configurar Grafana para visualizar as métricas",
+        "statement": "Configurar Grafana para visualizar as métricas.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Grafana consulta os dados coletados."
+      },
+      {
+        "id": "OBS-008",
+        "title": "Disponibilizar dashboard para analisar comportamento do serviço",
+        "statement": "Disponibilizar dashboard para analisar comportamento do serviço.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Dashboard exibe as métricas implementadas."
+      },
+      {
+        "id": "AUT-001",
+        "title": "Criar playbook Ansible",
+        "statement": "Criar playbook Ansible.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Playbook presente no projeto."
+      },
+      {
+        "id": "AUT-002",
+        "title": "Instalar Docker em Linux pelo processo automatizado",
+        "statement": "Instalar Docker em Linux pelo processo automatizado.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Execução do playbook deixa Docker operacional."
+      },
+      {
+        "id": "AUT-003",
+        "title": "Criar a rede Docker",
+        "statement": "Criar a rede Docker.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Rede criada como parte do provisionamento."
+      },
+      {
+        "id": "AUT-004",
+        "title": "Fazer build da imagem da aplicação",
+        "statement": "Fazer build da imagem da aplicação.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Imagem construída durante o fluxo automatizado."
+      },
+      {
+        "id": "AUT-005",
+        "title": "Criar e executar containers com Docker Compose",
+        "statement": "Criar e executar containers com Docker Compose.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Stack sobe durante o provisionamento."
+      },
+      {
+        "id": "AUT-006",
+        "title": "Configurar NGINX e proxy reverso",
+        "statement": "Configurar NGINX e proxy reverso.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Proxy funcional após o playbook."
+      },
+      {
+        "id": "AUT-007",
+        "title": "Configurar componentes de monitoramento",
+        "statement": "Configurar componentes de monitoramento.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Prometheus/Grafana ficam disponíveis/configurados."
+      },
+      {
+        "id": "AUT-008",
+        "title": "Executar requisição HTTP de validação",
+        "statement": "Executar requisição HTTP de validação.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Playbook realiza chamada HTTP ao serviço."
+      },
+      {
+        "id": "AUT-009",
+        "title": "Exibir resposta da validação no console",
+        "statement": "Exibir resposta da validação no console.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Saída da requisição aparece na execução."
+      },
+      {
+        "id": "AUT-010",
+        "title": "Provisionar todo o ambiente com um único comando Ansible",
+        "statement": "Provisionar todo o ambiente com um único comando Ansible.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Uma única invocação inicia o provisionamento completo."
+      },
+      {
+        "id": "AUT-011",
+        "title": "Provisionar automaticamente o dashboard do Grafana",
+        "statement": "Provisionar automaticamente o dashboard do Grafana.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "medium",
+        "verificationMethod": "Datasource/dashboard ficam prontos sem criação manual."
+      },
+      {
+        "id": "DEL-001",
+        "title": "Todos os arquivos devem estar em repositório público GitHub",
+        "statement": "Todos os arquivos devem estar em repositório público GitHub.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Repositório público contém os artefatos do projeto."
+      },
+      {
+        "id": "DEL-002",
+        "title": "Demonstrar execução do playbook Ansible",
+        "statement": "Demonstrar execução do playbook Ansible.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Demonstração reproduz provisionamento."
+      },
+      {
+        "id": "DEL-003",
+        "title": "Demonstrar Grafana e métricas funcionando",
+        "statement": "Demonstrar Grafana e métricas funcionando.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Dashboard funcional durante avaliação."
+      },
+      {
+        "id": "DEL-004",
+        "title": "Se dashboard for manual, demonstrar sua criação e funcionamento",
+        "statement": "Se dashboard for manual, demonstrar sua criação e funcionamento.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "medium",
+        "verificationMethod": "Demonstração cobre o processo manual."
+      },
+      {
+        "id": "DEL-005",
+        "title": "Estar preparado para explicar escolhas técnicas",
+        "statement": "Estar preparado para explicar escolhas técnicas.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Decisões possuem justificativas compreensíveis."
+      },
+      {
+        "id": "DEL-006",
+        "title": "Clareza e estruturação do raciocínio fazem parte da avaliação",
+        "statement": "Clareza e estruturação do raciocínio fazem parte da avaliação.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Documentação/código permitem explicar a solução."
+      },
+      {
+        "id": "DEL-007",
+        "title": "Enviar projeto em até 7 dias após recebimento",
+        "statement": "Enviar projeto em até 7 dias após recebimento.",
+        "classification": "declared",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Entrega dentro do prazo definido pela empresa."
+      },
+      {
+        "id": "QLT-001",
+        "title": "O projeto deve ser reproduzível",
+        "statement": "O projeto deve ser reproduzível.",
+        "classification": "inferred",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "O avaliador precisa executar/demonstrar o playbook."
+      },
+      {
+        "id": "QLT-002",
+        "title": "Configurações precisam estar versionadas",
+        "statement": "Configurações precisam estar versionadas.",
+        "classification": "inferred",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "Todos os arquivos devem estar no GitHub e a solução precisa ser demonstrável."
+      },
+      {
+        "id": "QLT-003",
+        "title": "O código deve favorecer leitura humana",
+        "statement": "O código deve favorecer leitura humana.",
+        "classification": "inferred",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "A clareza e estruturação do raciocínio são critérios de avaliação."
+      },
+      {
+        "id": "QLT-004",
+        "title": "Decisões técnicas precisam ser justificáveis",
+        "statement": "Decisões técnicas precisam ser justificáveis.",
+        "classification": "inferred",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "O candidato deve explicar suas escolhas."
+      },
+      {
+        "id": "QLT-005",
+        "title": "A automação deve evitar etapas ocultas indispensáveis",
+        "statement": "A automação deve evitar etapas ocultas indispensáveis.",
+        "classification": "inferred",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "O ambiente deve ser provisionado com um único comando Ansible."
+      },
+      {
+        "id": "AC-001",
+        "title": "Endpoint principal via NGINX",
+        "statement": "A chamada GET http://localhost:80/projeto-korp deve atravessar o NGINX e retornar JSON com nome Projeto Korp e horario UTC calculado por requisicao.",
+        "classification": "inferred",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "curl e validacao do payload"
+      },
+      {
+        "id": "AC-002",
+        "title": "Isolamento da aplicacao",
+        "statement": "O servico Go deve ser acessivel internamente pelo NGINX sem publicar a porta 8080 diretamente no host.",
+        "classification": "inferred",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "inspecao do Compose e da publicacao de portas"
+      },
+      {
+        "id": "AC-003",
+        "title": "Observabilidade funcional",
+        "statement": "Prometheus deve coletar disponibilidade e volume de requisicoes e Grafana deve apresenta-los em dashboard.",
+        "classification": "inferred",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "targets e metricas no Prometheus mais dashboard no Grafana"
+      },
+      {
+        "id": "AC-004",
+        "title": "Provisionamento reproduzivel",
+        "statement": "Uma unica invocacao Ansible deve provisionar Docker, rede, imagem, containers, proxy, monitoramento e executar validacao HTTP.",
+        "classification": "inferred",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "execucao limpa do playbook"
+      },
+      {
+        "id": "AC-005",
+        "title": "Demonstracao tecnica",
+        "statement": "A solucao deve permitir demonstrar playbook, resposta HTTP, metricas, dashboard e explicar escolhas tecnicas.",
+        "classification": "inferred",
+        "status": "active",
+        "priority": "high",
+        "verificationMethod": "roteiro de demonstracao e revisao humana"
+      }
+    ],
+    "constraints": [
+      {
+        "id": "CON-001",
+        "title": "Runtime Linux",
+        "statement": "O ambiente alvo de provisionamento deve ser Linux.",
+        "classification": "declared"
+      },
+      {
+        "id": "CON-002",
+        "title": "Go service on port 8080",
+        "statement": "O servico http-server-projeto-korp deve executar em Go e receber requisicoes na porta interna 8080.",
+        "classification": "declared"
+      },
+      {
+        "id": "CON-003",
+        "title": "Host exposure through NGINX",
+        "statement": "A aplicacao nao pode publicar 8080 no host; a entrada HTTP do host ocorre pelo NGINX na porta 80.",
+        "classification": "declared"
+      },
+      {
+        "id": "CON-004",
+        "title": "Docker bridge networking",
+        "statement": "Os containers devem comunicar por uma rede Docker no modo bridge.",
+        "classification": "declared"
+      },
+      {
+        "id": "CON-005",
+        "title": "Prometheus metrics format",
+        "statement": "As metricas do servico devem ser expostas em formato compativel com Prometheus.",
+        "classification": "declared"
+      },
+      {
+        "id": "CON-006",
+        "title": "Single Ansible entrypoint",
+        "statement": "O ambiente completo deve ser provisionado com uma unica invocacao Ansible.",
+        "classification": "declared"
+      },
+      {
+        "id": "CON-007",
+        "title": "Public GitHub delivery",
+        "statement": "Todos os arquivos do projeto devem estar em um repositorio publico do GitHub.",
+        "classification": "declared"
+      }
+    ],
+    "decisions": [
+      {
+        "id": "DEC-001",
+        "title": "HTTP ingress boundary",
+        "decision": "Usar NGINX como unica fronteira HTTP publicada no host para o endpoint da aplicacao.",
+        "rationale": "A fonte proibe exposicao direta da aplicacao e exige host port 80 no NGINX.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-002",
+        "title": "Monitoring data flow",
+        "decision": "Prometheus coleta metricas do servico e Grafana consulta Prometheus para visualizacao.",
+        "rationale": "Fluxo imposto pelos requisitos de observabilidade.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-003",
+        "title": "Provisioning authority",
+        "decision": "Ansible e o ponto de entrada do provisionamento integral do ambiente.",
+        "rationale": "A fonte exige um unico comando Ansible para toda a configuracao.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-004",
+        "title": "Docker network ownership",
+        "decision": "Criar a rede bridge via Ansible e referencia-la no Compose como rede externa.",
+        "rationale": "Evita dupla responsabilidade entre Ansible e Compose e atende a criacao explicita da rede pelo playbook.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-005",
+        "title": "Grafana provisioning",
+        "decision": "Provisionar datasource e dashboard do Grafana por arquivos versionados, com no minimo tres paineis: disponibilidade em Stat, total de requisicoes em Stat e taxa de requisicoes em Time series.",
+        "rationale": "A automacao melhora reproducibilidade e demonstrabilidade; o conjunto minimo de tres paineis cobre disponibilidade, volume acumulado e comportamento temporal do servico.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-006",
+        "title": "UTC timestamp representation",
+        "decision": "Usar RFC3339 em UTC para o campo horario.",
+        "rationale": "Formato padrao, legivel e inequivoco para timestamps UTC; a fonte nao define formato exato.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-007",
+        "title": "Observability contract",
+        "decision": "Expor GET /metrics somente na rede Docker interna; usar a metrica up produzida pelo Prometheus como sinal oficial de disponibilidade; instrumentar o volume das rotas da aplicacao, excluindo /metrics, com o Counter projeto_korp_http_requests_total e labels method, route e status.",
+        "rationale": "A solucao atende disponibilidade e volume com mecanismos nativos e simples do ecossistema Prometheus, evita uma metrica de disponibilidade redundante e impede que o proprio scrape de /metrics contamine o volume de trafego da aplicacao.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-008",
+        "title": "NGINX application routing boundary",
+        "decision": "Usar o NGINX dedicado da stack Korp como ingress generico das rotas publicas da aplicacao, mantendo /metrics exclusivamente na rede Docker interna e fora da superficie publicada pelo proxy.",
+        "rationale": "Preserva isolamento da stack, evita acoplamento do NGINX a cada rota de negocio e mantem a superficie de observabilidade interna sem impedir a evolucao controlada de novas rotas da aplicacao.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-009",
+        "title": "HTTP route and method responsibility",
+        "decision": "Delegar ao roteador HTTP do servico Go a semantica das rotas e metodos da aplicacao: rota inexistente retorna 404 e metodo nao permitido em rota conhecida retorna 405; NGINX permanece responsavel apenas por fronteira de proxy e falhas de infraestrutura.",
+        "rationale": "Mantem regras e semantica HTTP da aplicacao no componente que conhece seus contratos, evitando duplicacao de rotas e metodos no NGINX e separando erros de aplicacao de erros de proxy.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-010",
+        "title": "Minimum reverse proxy headers",
+        "decision": "Encaminhar ao servico Go os headers Host, X-Forwarded-For, X-Real-IP e X-Forwarded-Proto a partir do NGINX.",
+        "rationale": "Preserva contexto minimo do request original atraves do reverse proxy, incluindo host, origem do cliente e esquema, sem introduzir headers adicionais sem requisito concreto.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-011",
+        "title": "Runtime platform and technology baseline",
+        "decision": "Usar Ubuntu 24.04 LTS amd64 como plataforma alvo; Go 1.26.5; ansible-core 2.21.2; Docker Engine 29.6.0 existente como baseline compatível; Docker Compose plugin 5.2.x; nginx:1.30.4; prom/prometheus:v3.12.0; grafana/grafana:13.0.4-ubuntu.",
+        "rationale": "A baseline corresponde ao host inspecionado e às versões avaliadas como compatíveis pelo agente operador, priorizando reprodutibilidade e evitando atualização gratuita do ambiente. As versões são decisões operacionais do projeto, não requisitos originais da Korp.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-012",
+        "title": "Repository module structure",
+        "decision": "Organizar o repositório em app/cmd e app/internal para o serviço Go; infra/docker, infra/compose, infra/nginx, infra/prometheus e infra/grafana para infraestrutura; automation/ansible para provisionamento; tests/integration para testes de integração; docs/architecture para documentação arquitetural; evidence para evidências. Testes unitários Go permanecem junto aos respectivos pacotes em arquivos *_test.go.",
+        "rationale": "Mantém responsabilidades explícitas, legibilidade humana e proximidade entre código Go e seus testes unitários, reservando tests/integration para verificações entre componentes.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-013",
+        "title": "Verification and automated testing strategy",
+        "decision": "Dividir a verificação do Projeto Korp em quatro níveis: testes unitários Go junto aos pacotes; testes de integração da cadeia HTTP em tests/integration; teste de aceite do provisionamento via execução única do Ansible e curl através do NGINX na porta 80; e verificações de observabilidade comprovando target Prometheus up, crescimento do contador de requisições e os três painéis mínimos do Grafana.",
+        "rationale": "Relaciona cada nível de teste a uma responsabilidade concreta e aos critérios de aceite do desafio, sem introduzir frameworks ou ferramentas adicionais sem necessidade. A estratégia cobre comportamento interno, integração, provisionamento ponta a ponta e observabilidade.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-014",
+        "title": "Project endpoint HTTP success contract",
+        "decision": "Manter GET /projeto-korp como operacao obrigatoria, com 200 OK e Content-Type application/json; aceitar HEAD na mesma rota pelo comportamento nativo do roteador HTTP do Go, com os mesmos status e headers aplicaveis e sem corpo transmitido.",
+        "rationale": "Preserva o requisito original de GET e evita codigo adicional apenas para contrariar a semantica HTTP nativa do Go.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-015",
+        "title": "Baseline HTTP error representation",
+        "decision": "Nao criar envelope JSON customizado para erros no baseline obrigatorio; o contrato de erro sera definido por status HTTP, headers obrigatorios e responsabilidade da camada que detecta a condicao.",
+        "rationale": "O desafio nao exige schema de erro proprio e a semantica HTTP padrao e suficiente, mais simples e mais legivel para o avaliador.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-016",
+        "title": "Method not allowed contract",
+        "decision": "Para rota conhecida com metodo nao permitido, o servico Go retorna 405 Method Not Allowed e inclui Allow: GET, HEAD para /projeto-korp.",
+        "rationale": "Mantem a semantica de metodos no roteador da aplicacao e explicita os metodos aceitos pela rota.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-017",
+        "title": "External metrics ingress policy",
+        "decision": "Uma tentativa externa de acessar /metrics pela porta publica do NGINX retorna 404 diretamente no NGINX e nao e encaminhada ao servico Go.",
+        "rationale": "Mantem a superficie de observabilidade exclusivamente interna e evita revelar desnecessariamente a existencia do endpoint interno.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-018",
+        "title": "Application error pass through",
+        "decision": "NGINX nao intercepta nem substitui respostas 4xx ou 5xx produzidas pelo servico Go; respostas da aplicacao sao retransmitidas ao cliente sem customizacao de error_page.",
+        "rationale": "Preserva a autoridade do servico Go sobre a semantica da API e evita duplicacao de comportamento HTTP no proxy.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-019",
+        "title": "Gateway infrastructure error semantics",
+        "decision": "Falhas de comunicacao do NGINX com o upstream Go permanecem no dominio do proxy: indisponibilidade ou resposta upstream invalida resulta tipicamente em 502, e timeout de upstream resulta em 504; os bodies padrao nao serao customizados no baseline.",
+        "rationale": "Se o upstream nao responde corretamente, o servico Go nao pode produzir a resposta percebida pelo cliente; essa condicao pertence ao gateway.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-020",
+        "title": "Project endpoint handler component",
+        "decision": "Aceitar Project Endpoint Handler como componente declarado do servico Go, responsavel por processar a rota /projeto-korp e produzir a resposta HTTP de sucesso da aplicacao.",
+        "rationale": "A responsabilidade e concreta, pequena e diretamente ligada ao contrato HTTP obrigatorio.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-021",
+        "title": "UTC clock as implementation detail",
+        "decision": "Remover UTC Time Provider como componente arquitetural; a obtencao do horario UTC atual permanece detalhe de implementacao do handler, governado pelo contrato RFC3339 UTC.",
+        "rationale": "Uma abstracao arquitetural exclusiva para leitura do relogio do sistema seria complexidade gratuita para este servico pequeno.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-022",
+        "title": "HTTP metrics middleware separation",
+        "decision": "Instrumentacao de metricas observa o trafego HTTP da aplicacao como middleware e nao como dependencia direta do Project Endpoint Handler; /metrics permanece excluido dessa instrumentacao.",
+        "rationale": "Desacopla logica de resposta de observabilidade e permite contabilizacao uniforme sem contaminar o handler com detalhes Prometheus.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-023",
+        "title": "Bounded unmatched route label",
+        "decision": "No Counter projeto_korp_http_requests_total, rotas conhecidas usam o path canonico como label route e rotas desconhecidas usam route=\"unmatched\" em vez do path bruto solicitado.",
+        "rationale": "Evita cardinalidade nao controlada no Prometheus para paths arbitrarios mantendo utilidade diagnostica para respostas 404.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-024",
+        "title": "Gateway errors excluded from Go request counter",
+        "decision": "Respostas 502 e 504 geradas pelo NGINX nao fazem parte do Counter de requisicoes instrumentado no servico Go; nao sera adicionada metrica NGINX apenas para cobrir esses status no baseline.",
+        "rationale": "O contador Go so pode observar respostas processadas pela aplicacao; ampliar observabilidade do NGINX apenas para esses erros excederia o requisito atual.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-025",
+        "title": "Host port 80 deployment preflight",
+        "decision": "Antes do deployment, Ansible verifica se a porta TCP 80 do host esta disponivel; se estiver ocupada, a execucao falha com diagnostico claro sem parar, remover, reiniciar ou reconfigurar o servico existente. A porta 8080 do host nao e precondicao porque o Go permanece interno a rede Docker.",
+        "rationale": "A porta 80 e requisito da entrega e atualmente pode conflitar com outros servicos do host; a automacao deve detectar o conflito sem tomar decisoes destrutivas autonomamente.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      },
+      {
+        "id": "DEC-026",
+        "title": "Error handling projection",
+        "decision": "Registrar o comportamento de erros HTTP como behaviorKind error e habilitar o viewpoint BEH-ERROR para gerar automaticamente o fluxo de responsabilidade entre NGINX e Go.",
+        "rationale": "Transforma as decisoes de erro em uma visualizacao derivada do modelo canonico e preserva o principio de uma fonte semantica com multiplas projecoes.",
+        "classification": "declared",
+        "status": "accepted",
+        "rules": []
+      }
+    ],
+    "elements": [
+      {
+        "id": "SYS-KORP",
+        "name": "Korp Challenge System",
+        "elementKind": "system",
+        "classification": "declared",
+        "responsibility": "Entregar o servico HTTP, proxy, observabilidade e automacao exigidos pelo desafio."
+      },
+      {
+        "id": "CTR-GO-SERVICE",
+        "name": "http-server-projeto-korp",
+        "elementKind": "container",
+        "classification": "declared",
+        "responsibility": "Responder as rotas HTTP da aplicacao na porta interna 8080; aplicar semantica de roteamento e metodos, incluindo 404, 405 com Allow e falhas internas da aplicacao; expor GET /metrics somente para consumo interno pela rede Docker."
+      },
+      {
+        "id": "CTR-NGINX",
+        "name": "NGINX Reverse Proxy",
+        "elementKind": "container",
+        "classification": "declared",
+        "responsibility": "Publicar a porta 80 do host como ingress dedicado da stack Korp; encaminhar genericamente rotas publicas ao servico Go; bloquear /metrics externamente com 404; preservar headers minimos; retransmitir erros da aplicacao sem interceptacao e responder por falhas de gateway como 502 e 504."
+      },
+      {
+        "id": "CTR-PROMETHEUS",
+        "name": "Prometheus",
+        "elementKind": "container",
+        "classification": "declared",
+        "responsibility": "Coletar GET /metrics do servico pela rede Docker interna, produzir o sinal up do target e manter as series para consulta."
+      },
+      {
+        "id": "CTR-GRAFANA",
+        "name": "Grafana",
+        "elementKind": "container",
+        "classification": "declared",
+        "responsibility": "Visualizar no minimo disponibilidade, total de requisicoes e taxa de requisicoes em dashboard provisionado automaticamente."
+      },
+      {
+        "id": "CMP-HTTP-HANDLER",
+        "name": "Project Endpoint Handler",
+        "elementKind": "component",
+        "classification": "declared",
+        "responsibility": "Processar GET /projeto-korp, produzir 200 application/json com nome Projeto Korp e horario UTC RFC3339, e manter a logica de sucesso separada da instrumentacao Prometheus.",
+        "parentRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        }
+      },
+      {
+        "id": "CMP-METRICS",
+        "name": "Metrics Instrumentation",
+        "elementKind": "component",
+        "classification": "declared",
+        "responsibility": "Observar como middleware o trafego HTTP das rotas da aplicacao, excluindo /metrics; registrar projeto_korp_http_requests_total com labels method, route e status; usar route=unmatched para paths desconhecidos; expor metricas em formato Prometheus.",
+        "parentRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        }
+      },
+      {
+        "id": "IF-HTTP",
+        "name": "Project HTTP Interface",
+        "elementKind": "interface",
+        "classification": "declared",
+        "responsibility": "Contrato publico da aplicacao: GET /projeto-korp retorna 200 application/json com nome Projeto Korp e horario UTC RFC3339; HEAD e aceito pela semantica nativa do Go; rota desconhecida retorna 404; metodo nao permitido em rota conhecida retorna 405 com Allow: GET, HEAD; sem envelope JSON customizado de erro no baseline."
+      },
+      {
+        "id": "IF-METRICS",
+        "name": "Prometheus Metrics Interface",
+        "elementKind": "interface",
+        "classification": "declared",
+        "responsibility": "Expor GET /metrics em formato Prometheus somente para consumo interno pela rede Docker, sem publicacao pelo NGINX."
+      },
+      {
+        "id": "ENV-DEMO",
+        "name": "Linux Demonstration Environment",
+        "elementKind": "environment",
+        "classification": "declared",
+        "responsibility": "Ambiente Linux no qual o desafio e provisionado e demonstrado."
+      },
+      {
+        "id": "NODE-LINUX-HOST",
+        "name": "Linux Host",
+        "elementKind": "deployment-node",
+        "classification": "declared",
+        "responsibility": "Executar Docker e hospedar os containers do desafio.",
+        "parentRef": {
+          "kind": "element",
+          "id": "ENV-DEMO"
+        }
+      },
+      {
+        "id": "TECH-DOCKER",
+        "name": "Docker Engine",
+        "elementKind": "technology",
+        "classification": "declared",
+        "responsibility": "Executar imagens e containers."
+      },
+      {
+        "id": "TECH-COMPOSE",
+        "name": "Docker Compose",
+        "elementKind": "technology",
+        "classification": "declared",
+        "responsibility": "Declarar e iniciar a stack de containers."
+      },
+      {
+        "id": "TECH-ANSIBLE",
+        "name": "Ansible",
+        "elementKind": "technology",
+        "classification": "declared",
+        "responsibility": "Provisionar integralmente o ambiente, verificar previamente a disponibilidade da porta TCP 80 sem alterar servicos conflitantes e executar a validacao final."
+      },
+      {
+        "id": "TECH-GO",
+        "name": "Golang",
+        "elementKind": "technology",
+        "classification": "declared",
+        "responsibility": "Linguagem de implementacao do servico HTTP."
+      },
+      {
+        "id": "NET-BRIDGE",
+        "name": "Docker Bridge Network",
+        "elementKind": "other",
+        "classification": "declared",
+        "responsibility": "Permitir comunicacao interna entre os containers do desafio."
+      },
+      {
+        "id": "PROC-PROVISION",
+        "name": "Environment Provisioning Process",
+        "elementKind": "process",
+        "classification": "declared",
+        "responsibility": "Orquestrar instalacao, configuracao, subida e validacao do ambiente."
+      },
+      {
+        "id": "MOD-GO-ENTRYPOINT",
+        "name": "Go Service Entry Point",
+        "elementKind": "module",
+        "classification": "declared",
+        "description": "Repository path: app/cmd/http-server-projeto-korp/main.go",
+        "responsibility": "Compose the HTTP handler and metrics middleware, configure the internal listener on port 8080 and start the Go HTTP server.",
+        "parentRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        }
+      },
+      {
+        "id": "MOD-GO-HTTP-SERVER",
+        "name": "HTTP Server Module",
+        "elementKind": "module",
+        "classification": "declared",
+        "description": "Repository path: app/internal/httpserver/handler.go",
+        "responsibility": "Implement the Projeto Korp HTTP routing and response contract independently from Prometheus instrumentation.",
+        "parentRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        }
+      },
+      {
+        "id": "MOD-GO-METRICS",
+        "name": "Metrics Module",
+        "elementKind": "module",
+        "classification": "declared",
+        "description": "Repository path: app/internal/metrics/metrics.go",
+        "responsibility": "Instrument application traffic, expose internal Prometheus metrics and own the application metrics registry.",
+        "parentRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        }
+      },
+      {
+        "id": "MOD-COMPOSE-STACK",
+        "name": "Compose Stack Definition",
+        "elementKind": "module",
+        "classification": "declared",
+        "description": "Repository path: infra/compose/compose.yaml",
+        "responsibility": "Declare the application, NGINX, Prometheus and Grafana services and attach them to the external Korp bridge network.",
+        "parentRef": {
+          "kind": "element",
+          "id": "TECH-COMPOSE"
+        }
+      },
+      {
+        "id": "MOD-DOCKER-BUILD",
+        "name": "Application Docker Build",
+        "elementKind": "module",
+        "classification": "declared",
+        "description": "Repository path: infra/docker/Dockerfile",
+        "responsibility": "Build the Go service binary and package it into the runtime application image.",
+        "parentRef": {
+          "kind": "element",
+          "id": "TECH-DOCKER"
+        }
+      },
+      {
+        "id": "MOD-NGINX-CONFIG",
+        "name": "NGINX Ingress Configuration",
+        "elementKind": "module",
+        "classification": "declared",
+        "description": "Repository path: infra/nginx/http-server-projeto-korp.conf",
+        "responsibility": "Expose host port 80, proxy public HTTP traffic to the Go service and deny external access to the metrics endpoint.",
+        "parentRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        }
+      },
+      {
+        "id": "MOD-PROMETHEUS-CONFIG",
+        "name": "Prometheus Scrape Configuration",
+        "elementKind": "module",
+        "classification": "declared",
+        "description": "Repository path: infra/prometheus/prometheus.yml",
+        "responsibility": "Configure Prometheus to scrape the Go service metrics endpoint over the internal Docker network.",
+        "parentRef": {
+          "kind": "element",
+          "id": "CTR-PROMETHEUS"
+        }
+      },
+      {
+        "id": "MOD-GRAFANA-DATASOURCE",
+        "name": "Grafana Datasource Provisioning",
+        "elementKind": "module",
+        "classification": "declared",
+        "description": "Repository path: infra/grafana/provisioning/datasources/datasources.yml",
+        "responsibility": "Provision Prometheus as the default Grafana datasource through the internal service address.",
+        "parentRef": {
+          "kind": "element",
+          "id": "CTR-GRAFANA"
+        }
+      },
+      {
+        "id": "MOD-GRAFANA-DASHBOARD-PROVIDER",
+        "name": "Grafana Dashboard Provider",
+        "elementKind": "module",
+        "classification": "declared",
+        "description": "Repository path: infra/grafana/provisioning/dashboards/dashboards.yml",
+        "responsibility": "Provision file-based Grafana dashboards from the versioned dashboard directory.",
+        "parentRef": {
+          "kind": "element",
+          "id": "CTR-GRAFANA"
+        }
+      },
+      {
+        "id": "MOD-GRAFANA-DASHBOARD",
+        "name": "Korp Observability Dashboard",
+        "elementKind": "module",
+        "classification": "declared",
+        "description": "Repository path: infra/grafana/dashboards/http-server-projeto-korp-dashboard.json",
+        "responsibility": "Define the versioned Grafana dashboard for availability, request total and request rate.",
+        "parentRef": {
+          "kind": "element",
+          "id": "CTR-GRAFANA"
+        }
+      },
+      {
+        "id": "MOD-ANSIBLE-PROVISIONING",
+        "name": "Ansible Provisioning Module",
+        "elementKind": "module",
+        "classification": "declared",
+        "description": "Repository path: automation/ansible/site.yml",
+        "responsibility": "Prepare Docker, own the external bridge lifecycle, validate and start the Compose stack and verify the public endpoint.",
+        "parentRef": {
+          "kind": "element",
+          "id": "PROC-PROVISION"
+        }
+      },
+      {
+        "id": "MOD-TEST-HTTP-INTEGRATION",
+        "name": "HTTP Proxy Integration Test",
+        "elementKind": "module",
+        "classification": "declared",
+        "description": "Repository path: tests/integration/http_proxy.sh",
+        "responsibility": "Verify the externally observable HTTP contract through NGINX.",
+        "parentRef": {
+          "kind": "element",
+          "id": "SYS-KORP"
+        }
+      },
+      {
+        "id": "MOD-TEST-OBSERVABILITY-INTEGRATION",
+        "name": "Observability Integration Test",
+        "elementKind": "module",
+        "classification": "declared",
+        "description": "Repository path: tests/integration/observability.sh",
+        "responsibility": "Verify Prometheus target health, application metrics and Grafana observability integration.",
+        "parentRef": {
+          "kind": "element",
+          "id": "SYS-KORP"
+        }
+      },
+      {
+        "id": "TECH-PROMETHEUS-GO-CLIENT",
+        "name": "Prometheus Go Client",
+        "elementKind": "technology",
+        "classification": "declared",
+        "description": "Go module dependency: github.com/prometheus/client_golang v1.23.2",
+        "responsibility": "Provide Prometheus metric primitives and HTTP exposition support to the Go metrics module."
+      }
+    ],
+    "relationships": [
+      {
+        "id": "REL-001",
+        "sourceRef": {
+          "kind": "actor",
+          "id": "ACT-EVALUATOR"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "SYS-KORP"
+        },
+        "relationshipKind": "uses",
+        "description": "accesses and evaluates",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-002",
+        "sourceRef": {
+          "kind": "actor",
+          "id": "ACT-CANDIDATE"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "SYS-KORP"
+        },
+        "relationshipKind": "operates",
+        "description": "provisions and demonstrates",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-003",
+        "sourceRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        "relationshipKind": "routes-to",
+        "description": "forwards HTTP requests to port 8080",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-004",
+        "sourceRef": {
+          "kind": "element",
+          "id": "CTR-PROMETHEUS"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        "relationshipKind": "scrapes",
+        "description": "scrapes internal GET /metrics on service port 8080",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-005",
+        "sourceRef": {
+          "kind": "element",
+          "id": "CTR-GRAFANA"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-PROMETHEUS"
+        },
+        "relationshipKind": "queries",
+        "description": "reads time series for dashboards",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-006",
+        "sourceRef": {
+          "kind": "element",
+          "id": "ENV-DEMO"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "NODE-LINUX-HOST"
+        },
+        "relationshipKind": "contains",
+        "description": "hosts deployment node",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-007",
+        "sourceRef": {
+          "kind": "element",
+          "id": "NODE-LINUX-HOST"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "hosts",
+        "description": "runs as Docker container",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-008",
+        "sourceRef": {
+          "kind": "element",
+          "id": "NODE-LINUX-HOST"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        "relationshipKind": "hosts",
+        "description": "runs as Docker container",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-009",
+        "sourceRef": {
+          "kind": "element",
+          "id": "NODE-LINUX-HOST"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-PROMETHEUS"
+        },
+        "relationshipKind": "hosts",
+        "description": "runs as Docker container",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-010",
+        "sourceRef": {
+          "kind": "element",
+          "id": "NODE-LINUX-HOST"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GRAFANA"
+        },
+        "relationshipKind": "hosts",
+        "description": "runs as Docker container",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-011",
+        "sourceRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "IF-HTTP"
+        },
+        "relationshipKind": "exposes",
+        "description": "implements GET /projeto-korp",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-012",
+        "sourceRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "IF-METRICS"
+        },
+        "relationshipKind": "exposes",
+        "description": "publishes internal GET /metrics for Prometheus scraping",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-013",
+        "sourceRef": {
+          "kind": "element",
+          "id": "CMP-HTTP-HANDLER"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "IF-HTTP"
+        },
+        "relationshipKind": "implements",
+        "description": "implements the public project endpoint contract",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-016",
+        "sourceRef": {
+          "kind": "element",
+          "id": "CMP-METRICS"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "IF-METRICS"
+        },
+        "relationshipKind": "implements",
+        "description": "exports metric exposition surface",
+        "classification": "proposed"
+      },
+      {
+        "id": "REL-017",
+        "sourceRef": {
+          "kind": "element",
+          "id": "TECH-ANSIBLE"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "NODE-LINUX-HOST"
+        },
+        "relationshipKind": "provisions",
+        "description": "installs and configures the environment",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-018",
+        "sourceRef": {
+          "kind": "element",
+          "id": "NODE-LINUX-HOST"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "TECH-DOCKER"
+        },
+        "relationshipKind": "runs",
+        "description": "Docker execution engine",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-019",
+        "sourceRef": {
+          "kind": "element",
+          "id": "TECH-COMPOSE"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "orchestrates",
+        "description": "declares and starts container",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-020",
+        "sourceRef": {
+          "kind": "element",
+          "id": "TECH-COMPOSE"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        "relationshipKind": "orchestrates",
+        "description": "declares and starts container",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-021",
+        "sourceRef": {
+          "kind": "element",
+          "id": "TECH-COMPOSE"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-PROMETHEUS"
+        },
+        "relationshipKind": "orchestrates",
+        "description": "declares and starts container",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-022",
+        "sourceRef": {
+          "kind": "element",
+          "id": "TECH-COMPOSE"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GRAFANA"
+        },
+        "relationshipKind": "orchestrates",
+        "description": "declares and starts container",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-023",
+        "sourceRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "NET-BRIDGE"
+        },
+        "relationshipKind": "attached-to",
+        "description": "uses shared Docker bridge network",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-024",
+        "sourceRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "NET-BRIDGE"
+        },
+        "relationshipKind": "attached-to",
+        "description": "uses shared Docker bridge network",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-025",
+        "sourceRef": {
+          "kind": "element",
+          "id": "CTR-PROMETHEUS"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "NET-BRIDGE"
+        },
+        "relationshipKind": "attached-to",
+        "description": "uses shared Docker bridge network",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-026",
+        "sourceRef": {
+          "kind": "element",
+          "id": "CTR-GRAFANA"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "NET-BRIDGE"
+        },
+        "relationshipKind": "attached-to",
+        "description": "uses shared Docker bridge network",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-TRACE-AC-001-CTR-NGINX",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-001"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-TRACE-AC-001-CTR-GO-SERVICE",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-001"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-TRACE-AC-002-CTR-NGINX",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-002"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-TRACE-AC-002-CTR-GO-SERVICE",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-002"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-TRACE-AC-002-NET-BRIDGE",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-002"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "NET-BRIDGE"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-TRACE-AC-003-CTR-GO-SERVICE",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-003"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-TRACE-AC-003-CTR-PROMETHEUS",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-003"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-PROMETHEUS"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-TRACE-AC-003-CTR-GRAFANA",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-003"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GRAFANA"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-TRACE-AC-004-TECH-ANSIBLE",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-004"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "TECH-ANSIBLE"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-TRACE-AC-004-NODE-LINUX-HOST",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-004"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "NODE-LINUX-HOST"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-TRACE-AC-004-TECH-COMPOSE",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-004"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "TECH-COMPOSE"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-TRACE-AC-005-SYS-KORP",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-005"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "SYS-KORP"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-TRACE-AC-005-ACT-CANDIDATE",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-005"
+        },
+        "targetRef": {
+          "kind": "actor",
+          "id": "ACT-CANDIDATE"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-TRACE-AC-005-ACT-EVALUATOR",
+        "sourceRef": {
+          "kind": "requirement",
+          "id": "AC-005"
+        },
+        "targetRef": {
+          "kind": "actor",
+          "id": "ACT-EVALUATOR"
+        },
+        "relationshipKind": "realized-by",
+        "description": "primary verification or realization target",
+        "classification": "inferred"
+      },
+      {
+        "id": "REL-DEC-001-NGINX",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-001"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "governs",
+        "description": "publishes host HTTP ingress",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-001-GO",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-001"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        "relationshipKind": "governs",
+        "description": "keeps application port internal",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-002-PROM",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-002"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-PROMETHEUS"
+        },
+        "relationshipKind": "governs",
+        "description": "collects service metrics",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-002-GRAF",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-002"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GRAFANA"
+        },
+        "relationshipKind": "governs",
+        "description": "visualizes Prometheus data",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-003-ANSIBLE",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-003"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "TECH-ANSIBLE"
+        },
+        "relationshipKind": "governs",
+        "description": "single provisioning entrypoint",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-004-NET",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-004"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "NET-BRIDGE"
+        },
+        "relationshipKind": "governs",
+        "description": "network created by Ansible",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-004-COMPOSE",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-004"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "TECH-COMPOSE"
+        },
+        "relationshipKind": "governs",
+        "description": "Compose references external network",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-005-GRAF",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-005"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GRAFANA"
+        },
+        "relationshipKind": "governs",
+        "description": "dashboard and datasource provisioning",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-027",
+        "sourceRef": {
+          "kind": "element",
+          "id": "CMP-METRICS"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "IF-HTTP"
+        },
+        "relationshipKind": "observes",
+        "description": "observes application HTTP traffic except /metrics",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-006-HTTP",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-006"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "IF-HTTP"
+        },
+        "relationshipKind": "governs",
+        "description": "requires RFC3339 UTC in horario",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-008-NGINX",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-008"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "governs",
+        "description": "defines generic public application ingress and internal metrics boundary",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-009-GO",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-009"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        "relationshipKind": "governs",
+        "description": "owns application route and method semantics",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-009-NGINX",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-009"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "governs",
+        "description": "owns proxy and infrastructure failure semantics",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-010-NGINX",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-010"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "governs",
+        "description": "defines minimum forwarded proxy headers",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-013-GO",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-013"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        "relationshipKind": "governs",
+        "description": "requires unit and application behavior verification",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-013-NGINX",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-013"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "governs",
+        "description": "participates in HTTP integration and acceptance verification",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-013-ANSIBLE",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-013"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "TECH-ANSIBLE"
+        },
+        "relationshipKind": "governs",
+        "description": "owns deployment acceptance execution",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-013-PROM",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-013"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-PROMETHEUS"
+        },
+        "relationshipKind": "governs",
+        "description": "requires observability acceptance checks",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-013-GRAF",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-013"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-GRAFANA"
+        },
+        "relationshipKind": "governs",
+        "description": "requires dashboard acceptance checks",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-014-HTTP",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-014"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "IF-HTTP"
+        },
+        "relationshipKind": "governs",
+        "description": "defines GET and native HEAD success semantics",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-015-HTTP",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-015"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "IF-HTTP"
+        },
+        "relationshipKind": "governs",
+        "description": "avoids custom JSON error envelope",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-016-HTTP",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-016"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "IF-HTTP"
+        },
+        "relationshipKind": "governs",
+        "description": "requires 405 Allow header",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-017-NGINX",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-017"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "governs",
+        "description": "returns 404 for external /metrics access",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-017-METRICS",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-017"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "IF-METRICS"
+        },
+        "relationshipKind": "governs",
+        "description": "keeps metrics interface internal",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-018-NGINX",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-018"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "governs",
+        "description": "passes application errors through without interception",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-019-NGINX",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-019"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "governs",
+        "description": "defines 502 and 504 gateway semantics",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-020-HANDLER",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-020"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CMP-HTTP-HANDLER"
+        },
+        "relationshipKind": "governs",
+        "description": "accepts endpoint handler as declared component",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-021-HANDLER",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-021"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CMP-HTTP-HANDLER"
+        },
+        "relationshipKind": "governs",
+        "description": "keeps UTC clock access as implementation detail",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-022-METRICS",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-022"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CMP-METRICS"
+        },
+        "relationshipKind": "governs",
+        "description": "defines middleware instrumentation responsibility",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-023-METRICS",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-023"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CMP-METRICS"
+        },
+        "relationshipKind": "governs",
+        "description": "bounds route label cardinality with unmatched",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-024-METRICS",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-024"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CMP-METRICS"
+        },
+        "relationshipKind": "governs",
+        "description": "excludes NGINX gateway statuses from Go counter",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-024-NGINX",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-024"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "governs",
+        "description": "keeps gateway failures outside Go metrics",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-025-ANSIBLE",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-025"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "TECH-ANSIBLE"
+        },
+        "relationshipKind": "governs",
+        "description": "requires non-destructive host port 80 preflight",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-025-NGINX",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-025"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        "relationshipKind": "governs",
+        "description": "requires host port 80 to be available before publication",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-DEC-026-ERROR",
+        "sourceRef": {
+          "kind": "decision",
+          "id": "DEC-026"
+        },
+        "targetRef": {
+          "kind": "behavior",
+          "id": "BEH-HTTP-ERROR"
+        },
+        "relationshipKind": "governs",
+        "description": "enables canonical error handling behavior projection",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-001",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-GO-ENTRYPOINT"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-GO-HTTP-SERVER"
+        },
+        "relationshipKind": "depends-on",
+        "description": "constructs the application HTTP handler",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-002",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-GO-ENTRYPOINT"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-GO-METRICS"
+        },
+        "relationshipKind": "depends-on",
+        "description": "wraps the application handler with metrics instrumentation",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-003",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-GO-HTTP-SERVER"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CMP-HTTP-HANDLER"
+        },
+        "relationshipKind": "realizes",
+        "description": "materializes the Project Endpoint Handler component",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-004",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-GO-METRICS"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "CMP-METRICS"
+        },
+        "relationshipKind": "realizes",
+        "description": "materializes the Metrics Instrumentation component",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-005",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-GO-METRICS"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "TECH-PROMETHEUS-GO-CLIENT"
+        },
+        "relationshipKind": "depends-on",
+        "description": "uses the Prometheus Go client library",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-006",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-COMPOSE-STACK"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-DOCKER-BUILD"
+        },
+        "relationshipKind": "uses",
+        "description": "builds the application service image from the Dockerfile",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-007",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-COMPOSE-STACK"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-NGINX-CONFIG"
+        },
+        "relationshipKind": "uses",
+        "description": "mounts the NGINX ingress configuration",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-008",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-COMPOSE-STACK"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-PROMETHEUS-CONFIG"
+        },
+        "relationshipKind": "uses",
+        "description": "mounts the Prometheus scrape configuration",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-009",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-COMPOSE-STACK"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-GRAFANA-DATASOURCE"
+        },
+        "relationshipKind": "uses",
+        "description": "mounts Grafana datasource provisioning",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-010",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-COMPOSE-STACK"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-GRAFANA-DASHBOARD-PROVIDER"
+        },
+        "relationshipKind": "uses",
+        "description": "mounts Grafana dashboard provider configuration",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-011",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-COMPOSE-STACK"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-GRAFANA-DASHBOARD"
+        },
+        "relationshipKind": "uses",
+        "description": "mounts the versioned observability dashboard",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-012",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-GRAFANA-DASHBOARD-PROVIDER"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-GRAFANA-DASHBOARD"
+        },
+        "relationshipKind": "loads",
+        "description": "loads the versioned dashboard from the dashboard directory",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-013",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-GRAFANA-DATASOURCE"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-PROMETHEUS-CONFIG"
+        },
+        "relationshipKind": "depends-on",
+        "description": "connects Grafana to the Prometheus service configured by the stack",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-014",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-NGINX-CONFIG"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-GO-ENTRYPOINT"
+        },
+        "relationshipKind": "runtime-depends-on",
+        "description": "routes public traffic to the Go service on internal port 8080",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-015",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-PROMETHEUS-CONFIG"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-GO-METRICS"
+        },
+        "relationshipKind": "runtime-depends-on",
+        "description": "scrapes the metrics endpoint exposed by the Go metrics module",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-016",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-ANSIBLE-PROVISIONING"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-COMPOSE-STACK"
+        },
+        "relationshipKind": "executes",
+        "description": "validates, builds and starts the approved Compose stack",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-017",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-TEST-HTTP-INTEGRATION"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-NGINX-CONFIG"
+        },
+        "relationshipKind": "verifies",
+        "description": "verifies the public HTTP ingress behavior",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-018",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-TEST-OBSERVABILITY-INTEGRATION"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-PROMETHEUS-CONFIG"
+        },
+        "relationshipKind": "verifies",
+        "description": "verifies Prometheus observability behavior",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-019",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-TEST-OBSERVABILITY-INTEGRATION"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-GRAFANA-DATASOURCE"
+        },
+        "relationshipKind": "verifies",
+        "description": "verifies Grafana datasource integration",
+        "classification": "declared"
+      },
+      {
+        "id": "REL-MOD-020",
+        "sourceRef": {
+          "kind": "element",
+          "id": "MOD-TEST-OBSERVABILITY-INTEGRATION"
+        },
+        "targetRef": {
+          "kind": "element",
+          "id": "MOD-GRAFANA-DASHBOARD"
+        },
+        "relationshipKind": "verifies",
+        "description": "verifies the provisioned dashboard contract",
+        "classification": "declared"
+      }
+    ],
+    "behaviors": [
+      {
+        "id": "BEH-HTTP-REQUEST",
+        "title": "HTTP request through reverse proxy",
+        "behaviorKind": "sequence",
+        "description": "Fluxo principal de GET /projeto-korp passando pelo NGINX ate o servico Go.",
+        "classification": "declared",
+        "participants": [
+          {
+            "kind": "actor",
+            "id": "ACT-EVALUATOR"
+          },
+          {
+            "kind": "element",
+            "id": "CTR-NGINX"
+          },
+          {
+            "kind": "element",
+            "id": "CTR-GO-SERVICE"
+          }
+        ],
+        "messages": [
+          {
+            "sourceRef": {
+              "kind": "actor",
+              "id": "ACT-EVALUATOR"
+            },
+            "targetRef": {
+              "kind": "element",
+              "id": "CTR-NGINX"
+            },
+            "text": "GET /projeto-korp on host port 80",
+            "operator": "->>"
+          },
+          {
+            "sourceRef": {
+              "kind": "element",
+              "id": "CTR-NGINX"
+            },
+            "targetRef": {
+              "kind": "element",
+              "id": "CTR-GO-SERVICE"
+            },
+            "text": "Forward GET /projeto-korp to port 8080",
+            "operator": "->>"
+          },
+          {
+            "sourceRef": {
+              "kind": "element",
+              "id": "CTR-GO-SERVICE"
+            },
+            "targetRef": {
+              "kind": "element",
+              "id": "CTR-NGINX"
+            },
+            "text": "Return JSON with project name and current UTC time",
+            "operator": "-->>"
+          },
+          {
+            "sourceRef": {
+              "kind": "element",
+              "id": "CTR-NGINX"
+            },
+            "targetRef": {
+              "kind": "actor",
+              "id": "ACT-EVALUATOR"
+            },
+            "text": "Return HTTP JSON response",
+            "operator": "-->>"
+          }
+        ]
+      },
+      {
+        "id": "BEH-PROVISIONING",
+        "title": "Single-command environment provisioning",
+        "behaviorKind": "operational-process",
+        "description": "Fluxo minimo do Ansible para preflight nao destrutivo da porta 80, provisionamento integral, subida da stack e validacao HTTP do desafio.",
+        "classification": "declared",
+        "participants": [
+          {
+            "kind": "actor",
+            "id": "ACT-CANDIDATE"
+          },
+          {
+            "kind": "element",
+            "id": "TECH-ANSIBLE"
+          },
+          {
+            "kind": "element",
+            "id": "NODE-LINUX-HOST"
+          }
+        ],
+        "steps": [
+          {
+            "id": "STEP-START",
+            "label": "Start Ansible command",
+            "kind": "start"
+          },
+          {
+            "id": "STEP-PORT80",
+            "label": "Check host TCP port 80 availability",
+            "kind": "decision"
+          },
+          {
+            "id": "STEP-PORT80-FAIL",
+            "label": "Fail deployment and report port 80 conflict without changing existing services",
+            "kind": "failure"
+          },
+          {
+            "id": "STEP-DOCKER",
+            "label": "Install and configure Docker",
+            "kind": "step"
+          },
+          {
+            "id": "STEP-NET",
+            "label": "Create Docker bridge network",
+            "kind": "step"
+          },
+          {
+            "id": "STEP-BUILD",
+            "label": "Build Go service image",
+            "kind": "step"
+          },
+          {
+            "id": "STEP-COMPOSE",
+            "label": "Create and run containers with Docker Compose",
+            "kind": "step"
+          },
+          {
+            "id": "STEP-NGINX",
+            "label": "Configure NGINX reverse proxy",
+            "kind": "step"
+          },
+          {
+            "id": "STEP-MON",
+            "label": "Configure Prometheus and Grafana",
+            "kind": "step"
+          },
+          {
+            "id": "STEP-VERIFY",
+            "label": "Execute HTTP validation request through host port 80",
+            "kind": "step"
+          },
+          {
+            "id": "STEP-OUTPUT",
+            "label": "Display response in console",
+            "kind": "step"
+          },
+          {
+            "id": "STEP-END",
+            "label": "Environment ready for demonstration",
+            "kind": "end"
+          },
+          {
+            "id": "STEP-BLOCKED",
+            "label": "Human decision required before deployment",
+            "kind": "end"
+          }
+        ],
+        "transitions": [
+          {
+            "source": "STEP-START",
+            "target": "STEP-PORT80",
+            "label": null
+          },
+          {
+            "source": "STEP-PORT80",
+            "target": "STEP-DOCKER",
+            "label": "Port 80 available"
+          },
+          {
+            "source": "STEP-PORT80",
+            "target": "STEP-PORT80-FAIL",
+            "label": "Port 80 occupied"
+          },
+          {
+            "source": "STEP-PORT80-FAIL",
+            "target": "STEP-BLOCKED",
+            "label": null
+          },
+          {
+            "source": "STEP-DOCKER",
+            "target": "STEP-NET",
+            "label": null
+          },
+          {
+            "source": "STEP-NET",
+            "target": "STEP-BUILD",
+            "label": null
+          },
+          {
+            "source": "STEP-BUILD",
+            "target": "STEP-COMPOSE",
+            "label": null
+          },
+          {
+            "source": "STEP-COMPOSE",
+            "target": "STEP-NGINX",
+            "label": null
+          },
+          {
+            "source": "STEP-NGINX",
+            "target": "STEP-MON",
+            "label": null
+          },
+          {
+            "source": "STEP-MON",
+            "target": "STEP-VERIFY",
+            "label": null
+          },
+          {
+            "source": "STEP-VERIFY",
+            "target": "STEP-OUTPUT",
+            "label": null
+          },
+          {
+            "source": "STEP-OUTPUT",
+            "target": "STEP-END",
+            "label": null
+          }
+        ]
+      },
+      {
+        "id": "BEH-OBSERVABILITY",
+        "title": "Metrics collection and visualization",
+        "behaviorKind": "sequence",
+        "description": "Prometheus coleta GET /metrics pela rede Docker interna; disponibilidade e representada por up; o servico expoe projeto_korp_http_requests_total para volume; Grafana consulta Prometheus e apresenta os tres paineis minimos aprovados.",
+        "classification": "declared",
+        "participants": [
+          {
+            "kind": "element",
+            "id": "CTR-GO-SERVICE"
+          },
+          {
+            "kind": "element",
+            "id": "CTR-PROMETHEUS"
+          },
+          {
+            "kind": "element",
+            "id": "CTR-GRAFANA"
+          }
+        ],
+        "messages": [
+          {
+            "sourceRef": {
+              "kind": "element",
+              "id": "CTR-PROMETHEUS"
+            },
+            "targetRef": {
+              "kind": "element",
+              "id": "CTR-GO-SERVICE"
+            },
+            "text": "GET /metrics on internal Docker network",
+            "operator": "->>"
+          },
+          {
+            "sourceRef": {
+              "kind": "element",
+              "id": "CTR-GO-SERVICE"
+            },
+            "targetRef": {
+              "kind": "element",
+              "id": "CTR-PROMETHEUS"
+            },
+            "text": "Return projeto_korp_http_requests_total and Prometheus exposition",
+            "operator": "-->>"
+          },
+          {
+            "sourceRef": {
+              "kind": "element",
+              "id": "CTR-PROMETHEUS"
+            },
+            "targetRef": {
+              "kind": "element",
+              "id": "CTR-PROMETHEUS"
+            },
+            "text": "Derive target availability as up",
+            "operator": "->>"
+          },
+          {
+            "sourceRef": {
+              "kind": "element",
+              "id": "CTR-GRAFANA"
+            },
+            "targetRef": {
+              "kind": "element",
+              "id": "CTR-PROMETHEUS"
+            },
+            "text": "Query availability, request total and request rate",
+            "operator": "->>"
+          },
+          {
+            "sourceRef": {
+              "kind": "element",
+              "id": "CTR-PROMETHEUS"
+            },
+            "targetRef": {
+              "kind": "element",
+              "id": "CTR-GRAFANA"
+            },
+            "text": "Return series for Stat and Time series panels",
+            "operator": "-->>"
+          }
+        ]
+      },
+      {
+        "id": "BEH-HTTP-ERROR",
+        "title": "HTTP error responsibility and response flow",
+        "behaviorKind": "error",
+        "description": "Fluxo canonico que separa politica de ingress e falhas de gateway no NGINX da semantica de rotas, metodos e processamento da aplicacao no servico Go.",
+        "classification": "declared",
+        "participants": [
+          {
+            "kind": "actor",
+            "id": "ACT-EVALUATOR"
+          },
+          {
+            "kind": "element",
+            "id": "CTR-NGINX"
+          },
+          {
+            "kind": "element",
+            "id": "CTR-GO-SERVICE"
+          }
+        ],
+        "steps": [
+          {
+            "id": "ERR-START",
+            "label": "Client sends HTTP request to NGINX",
+            "kind": "start"
+          },
+          {
+            "id": "ERR-INGRESS",
+            "label": "NGINX evaluates ingress policy",
+            "kind": "decision"
+          },
+          {
+            "id": "ERR-METRICS-404",
+            "label": "NGINX returns 404 for external metrics route",
+            "kind": "failure"
+          },
+          {
+            "id": "ERR-UPSTREAM",
+            "label": "NGINX attempts upstream communication",
+            "kind": "decision"
+          },
+          {
+            "id": "ERR-502",
+            "label": "NGINX returns 502 for unavailable or invalid upstream",
+            "kind": "failure"
+          },
+          {
+            "id": "ERR-504",
+            "label": "NGINX returns 504 for upstream timeout",
+            "kind": "failure"
+          },
+          {
+            "id": "ERR-GO-ROUTER",
+            "label": "Go router evaluates application route and method",
+            "kind": "decision"
+          },
+          {
+            "id": "ERR-GO-404",
+            "label": "Go returns 404 for unknown application route",
+            "kind": "failure"
+          },
+          {
+            "id": "ERR-GO-405",
+            "label": "Go returns 405 with Allow header for unsupported method",
+            "kind": "failure"
+          },
+          {
+            "id": "ERR-HANDLER",
+            "label": "Go project handler processes valid request",
+            "kind": "step"
+          },
+          {
+            "id": "ERR-RESULT",
+            "label": "Go evaluates processing result",
+            "kind": "decision"
+          },
+          {
+            "id": "ERR-GO-200",
+            "label": "Go returns 200 application response",
+            "kind": "step"
+          },
+          {
+            "id": "ERR-GO-500",
+            "label": "Go returns 500 for detected application failure",
+            "kind": "failure"
+          },
+          {
+            "id": "ERR-PASS",
+            "label": "NGINX passes Go response through unchanged",
+            "kind": "step"
+          },
+          {
+            "id": "ERR-END",
+            "label": "Client receives HTTP response",
+            "kind": "end"
+          }
+        ],
+        "transitions": [
+          {
+            "source": "ERR-START",
+            "target": "ERR-INGRESS",
+            "label": null
+          },
+          {
+            "source": "ERR-INGRESS",
+            "target": "ERR-METRICS-404",
+            "label": "External metrics route"
+          },
+          {
+            "source": "ERR-INGRESS",
+            "target": "ERR-UPSTREAM",
+            "label": "Public application traffic"
+          },
+          {
+            "source": "ERR-METRICS-404",
+            "target": "ERR-END",
+            "label": null
+          },
+          {
+            "source": "ERR-UPSTREAM",
+            "target": "ERR-502",
+            "label": "Unavailable or invalid upstream"
+          },
+          {
+            "source": "ERR-UPSTREAM",
+            "target": "ERR-504",
+            "label": "Upstream timeout"
+          },
+          {
+            "source": "ERR-UPSTREAM",
+            "target": "ERR-GO-ROUTER",
+            "label": "Connected"
+          },
+          {
+            "source": "ERR-502",
+            "target": "ERR-END",
+            "label": null
+          },
+          {
+            "source": "ERR-504",
+            "target": "ERR-END",
+            "label": null
+          },
+          {
+            "source": "ERR-GO-ROUTER",
+            "target": "ERR-GO-404",
+            "label": "Unknown route"
+          },
+          {
+            "source": "ERR-GO-ROUTER",
+            "target": "ERR-GO-405",
+            "label": "Unsupported method"
+          },
+          {
+            "source": "ERR-GO-ROUTER",
+            "target": "ERR-HANDLER",
+            "label": "GET or HEAD project route"
+          },
+          {
+            "source": "ERR-GO-404",
+            "target": "ERR-PASS",
+            "label": null
+          },
+          {
+            "source": "ERR-GO-405",
+            "target": "ERR-PASS",
+            "label": null
+          },
+          {
+            "source": "ERR-HANDLER",
+            "target": "ERR-RESULT",
+            "label": null
+          },
+          {
+            "source": "ERR-RESULT",
+            "target": "ERR-GO-200",
+            "label": "Success"
+          },
+          {
+            "source": "ERR-RESULT",
+            "target": "ERR-GO-500",
+            "label": "Application failure"
+          },
+          {
+            "source": "ERR-GO-200",
+            "target": "ERR-PASS",
+            "label": null
+          },
+          {
+            "source": "ERR-GO-500",
+            "target": "ERR-PASS",
+            "label": null
+          },
+          {
+            "source": "ERR-PASS",
+            "target": "ERR-END",
+            "label": null
+          }
+        ]
+      }
+    ],
+    "unknowns": []
+  },
+  "documents": [
+    {
+      "documentId": "DOC-ARCH-CONTEXT",
+      "documentCode": "ARCH-CONTEXT",
+      "title": "System Context",
+      "status": "draft",
+      "enabled": true,
+      "applicability": "applicable",
+      "layoutDirection": "LR",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-ARCH-CONTAINER",
+      "documentCode": "ARCH-CONTAINER",
+      "title": "Containers",
+      "status": "draft",
+      "enabled": true,
+      "applicability": "applicable",
+      "layoutDirection": "LR",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-ARCH-COMPONENT",
+      "documentCode": "ARCH-COMPONENT",
+      "title": "Components",
+      "status": "draft",
+      "enabled": true,
+      "applicability": "applicable",
+      "layoutDirection": "LR",
+      "behaviorRef": null,
+      "semanticRefs": [
+        {
+          "kind": "element",
+          "id": "CMP-HTTP-HANDLER"
+        },
+        {
+          "kind": "element",
+          "id": "CMP-METRICS"
+        },
+        {
+          "kind": "element",
+          "id": "IF-HTTP"
+        },
+        {
+          "kind": "element",
+          "id": "IF-METRICS"
+        }
+      ]
+    },
+    {
+      "documentId": "DOC-ARCH-DEPLOYMENT",
+      "documentCode": "ARCH-DEPLOYMENT",
+      "title": "Deployment",
+      "status": "draft",
+      "enabled": true,
+      "applicability": "applicable",
+      "layoutDirection": "LR",
+      "behaviorRef": null,
+      "semanticRefs": [
+        {
+          "kind": "actor",
+          "id": "ACT-CANDIDATE"
+        },
+        {
+          "kind": "element",
+          "id": "ENV-DEMO"
+        },
+        {
+          "kind": "element",
+          "id": "NODE-LINUX-HOST"
+        },
+        {
+          "kind": "element",
+          "id": "TECH-ANSIBLE"
+        },
+        {
+          "kind": "element",
+          "id": "TECH-DOCKER"
+        },
+        {
+          "kind": "element",
+          "id": "TECH-COMPOSE"
+        },
+        {
+          "kind": "element",
+          "id": "NET-BRIDGE"
+        },
+        {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        {
+          "kind": "element",
+          "id": "CTR-PROMETHEUS"
+        },
+        {
+          "kind": "element",
+          "id": "CTR-GRAFANA"
+        }
+      ]
+    },
+    {
+      "documentId": "DOC-ARCH-LANDSCAPE",
+      "documentCode": "ARCH-LANDSCAPE",
+      "title": "Landscape",
+      "status": "draft",
+      "enabled": false,
+      "applicability": "not-applicable",
+      "layoutDirection": "LR",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-ARCH-DECISION",
+      "documentCode": "ARCH-DECISION",
+      "title": "Architecture Decisions",
+      "status": "draft",
+      "enabled": true,
+      "applicability": "applicable",
+      "layoutDirection": "LR",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-DATA-DOMAIN",
+      "documentCode": "DATA-DOMAIN",
+      "title": "Data Domains",
+      "status": "draft",
+      "enabled": false,
+      "applicability": "not-applicable",
+      "layoutDirection": "TB",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-DATA-AGGREGATE",
+      "documentCode": "DATA-AGGREGATE",
+      "title": "Aggregates",
+      "status": "draft",
+      "enabled": false,
+      "applicability": "not-applicable",
+      "layoutDirection": "TB",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-DATA-LOGICAL",
+      "documentCode": "DATA-LOGICAL",
+      "title": "Logical Data Model",
+      "status": "draft",
+      "enabled": false,
+      "applicability": "not-applicable",
+      "layoutDirection": "TB",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-DATA-PHYSICAL",
+      "documentCode": "DATA-PHYSICAL",
+      "title": "Physical Data Model",
+      "status": "draft",
+      "enabled": false,
+      "applicability": "not-applicable",
+      "layoutDirection": "TB",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-CODE-CLASS",
+      "documentCode": "CODE-CLASS",
+      "title": "Classes and Interfaces",
+      "status": "draft",
+      "enabled": false,
+      "applicability": "not-applicable",
+      "layoutDirection": "TB",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-CODE-MODULE",
+      "documentCode": "CODE-MODULE",
+      "title": "Modules and Dependencies",
+      "status": "draft",
+      "enabled": true,
+      "applicability": "applicable",
+      "layoutDirection": "LR",
+      "behaviorRef": null,
+      "semanticRefs": [
+        {
+          "kind": "element",
+          "id": "MOD-GO-ENTRYPOINT"
+        },
+        {
+          "kind": "element",
+          "id": "MOD-GO-HTTP-SERVER"
+        },
+        {
+          "kind": "element",
+          "id": "MOD-GO-METRICS"
+        },
+        {
+          "kind": "element",
+          "id": "MOD-COMPOSE-STACK"
+        },
+        {
+          "kind": "element",
+          "id": "MOD-DOCKER-BUILD"
+        },
+        {
+          "kind": "element",
+          "id": "MOD-NGINX-CONFIG"
+        },
+        {
+          "kind": "element",
+          "id": "MOD-PROMETHEUS-CONFIG"
+        },
+        {
+          "kind": "element",
+          "id": "MOD-GRAFANA-DATASOURCE"
+        },
+        {
+          "kind": "element",
+          "id": "MOD-GRAFANA-DASHBOARD-PROVIDER"
+        },
+        {
+          "kind": "element",
+          "id": "MOD-GRAFANA-DASHBOARD"
+        },
+        {
+          "kind": "element",
+          "id": "MOD-ANSIBLE-PROVISIONING"
+        },
+        {
+          "kind": "element",
+          "id": "MOD-TEST-HTTP-INTEGRATION"
+        },
+        {
+          "kind": "element",
+          "id": "MOD-TEST-OBSERVABILITY-INTEGRATION"
+        },
+        {
+          "kind": "element",
+          "id": "TECH-PROMETHEUS-GO-CLIENT"
+        },
+        {
+          "kind": "element",
+          "id": "CMP-HTTP-HANDLER"
+        },
+        {
+          "kind": "element",
+          "id": "CMP-METRICS"
+        },
+        {
+          "kind": "element",
+          "id": "IF-HTTP"
+        },
+        {
+          "kind": "element",
+          "id": "IF-METRICS"
+        }
+      ]
+    },
+    {
+      "documentId": "DOC-BEH-SEQUENCE",
+      "documentCode": "BEH-SEQUENCE",
+      "title": "Interaction Sequence",
+      "status": "draft",
+      "enabled": true,
+      "applicability": "applicable",
+      "layoutDirection": "TB",
+      "behaviorRef": "BEH-HTTP-REQUEST",
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-BEH-STATE",
+      "documentCode": "BEH-STATE",
+      "title": "States and Transitions",
+      "status": "draft",
+      "enabled": false,
+      "applicability": "not-applicable",
+      "layoutDirection": "TB",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-BEH-ACTIVITY",
+      "documentCode": "BEH-ACTIVITY",
+      "title": "Activity and Control Flow",
+      "status": "draft",
+      "enabled": false,
+      "applicability": "pending",
+      "layoutDirection": "TB",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-BEH-EVENT",
+      "documentCode": "BEH-EVENT",
+      "title": "Event Topology",
+      "status": "draft",
+      "enabled": false,
+      "applicability": "not-applicable",
+      "layoutDirection": "TB",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-BEH-ERROR",
+      "documentCode": "BEH-ERROR",
+      "title": "Error Handling",
+      "status": "draft",
+      "enabled": true,
+      "applicability": "applicable",
+      "layoutDirection": "TB",
+      "behaviorRef": "BEH-HTTP-ERROR",
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-PROC-BUSINESS",
+      "documentCode": "PROC-BUSINESS",
+      "title": "Business Process",
+      "status": "draft",
+      "enabled": false,
+      "applicability": "not-applicable",
+      "layoutDirection": "TB",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-PROC-OPERATIONAL",
+      "documentCode": "PROC-OPERATIONAL",
+      "title": "Operational Process",
+      "status": "draft",
+      "enabled": true,
+      "applicability": "applicable",
+      "layoutDirection": "TB",
+      "behaviorRef": "BEH-PROVISIONING",
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-DEC-TREE",
+      "documentCode": "DEC-TREE",
+      "title": "Decision Tree",
+      "status": "draft",
+      "enabled": false,
+      "applicability": "pending",
+      "layoutDirection": "TB",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-DEC-TABLE",
+      "documentCode": "DEC-TABLE",
+      "title": "Decision Table",
+      "status": "draft",
+      "enabled": false,
+      "applicability": "pending",
+      "layoutDirection": "TB",
+      "behaviorRef": null,
+      "semanticRefs": []
+    },
+    {
+      "documentId": "DOC-TRACE-REQUIREMENT",
+      "documentCode": "TRACE-REQUIREMENT",
+      "title": "Requirement Traceability",
+      "status": "draft",
+      "enabled": true,
+      "applicability": "applicable",
+      "layoutDirection": "LR",
+      "behaviorRef": null,
+      "semanticRefs": [
+        {
+          "kind": "requirement",
+          "id": "AC-001"
+        },
+        {
+          "kind": "requirement",
+          "id": "AC-002"
+        },
+        {
+          "kind": "requirement",
+          "id": "AC-003"
+        },
+        {
+          "kind": "requirement",
+          "id": "AC-004"
+        },
+        {
+          "kind": "requirement",
+          "id": "AC-005"
+        },
+        {
+          "kind": "element",
+          "id": "CTR-NGINX"
+        },
+        {
+          "kind": "element",
+          "id": "CTR-GO-SERVICE"
+        },
+        {
+          "kind": "element",
+          "id": "NET-BRIDGE"
+        },
+        {
+          "kind": "element",
+          "id": "CTR-PROMETHEUS"
+        },
+        {
+          "kind": "element",
+          "id": "CTR-GRAFANA"
+        },
+        {
+          "kind": "element",
+          "id": "TECH-ANSIBLE"
+        },
+        {
+          "kind": "element",
+          "id": "NODE-LINUX-HOST"
+        },
+        {
+          "kind": "element",
+          "id": "TECH-COMPOSE"
+        },
+        {
+          "kind": "element",
+          "id": "SYS-KORP"
+        },
+        {
+          "kind": "actor",
+          "id": "ACT-CANDIDATE"
+        },
+        {
+          "kind": "actor",
+          "id": "ACT-EVALUATOR"
+        }
+      ]
+    }
+  ]
+}
