@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "korp-architecture-promotion/1.1",
+  "project": "Projeto Korp",
+  "packageId": "ARCH-KORP-001",
+  "revision": 7,
+  "changeSet": {
+    "id": "CHG-KORP-006",
+    "operationCount": 333,
+    "sha256": "832fefec1d986109cfb77787eaec840c65939957efba8761df4399a0112e2a29",
+    "applyLifecyclePolicy": "apply-output-is-editing"
+  },
+  "controlledLifecycle": {
+    "apply": {
+      "fromRevision": 6,
+      "toRevision": 7,
+      "resultWorkspaceStatus": "editing",
+      "expectedSha256": "7d460bd161321f5d2278839a7bd6e4976074fc62c8fdb500324701747f07ba59"
+    },
+    "validation": {
+      "fromWorkspaceStatus": "editing",
+      "toWorkspaceStatus": "validated",
+      "semanticChanges": 0,
+      "expectedSha256": "917f98eb09bdeb825030572a155c2677f6d43d1c0d522ea9747defcddc610ddd"
+    },
+    "humanPromotion": {
+      "authorized": true,
+      "fromWorkspaceStatus": "validated",
+      "toWorkspaceStatus": "approved",
+      "enabledDocumentsFrom": "draft",
+      "enabledDocumentsTo": "active",
+      "enabledDocumentCount": 13,
+      "semanticChanges": 0,
+      "canonicalStateAfterPromotion": "ARCH-KORP-001 Revision 7",
+      "revision6StateAfterPromotion": "historical",
+      "expectedSha256": "ec6f6b0045c5a2f5f888995bfe241ddd372e123cdddfb423f6603e933c9a4025"
+    }
+  },
+  "implementation": {
+    "applicationCorrectionCommit": "3cac557923d40deccadd24e77119f8e4535557f0",
+    "processorLifecycleToolCommit": "d730b920350d299cf8a0c325f7fa1c205bb89619",
+    "processorPublicationPolicy": "local-generation-tool-unless-separately-authorized"
+  }
+}

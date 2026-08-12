@@ -1,8 +1,8 @@
 # ARCH-DEPLOYMENT — Deployment
 
 - Project: Projeto Korp DevOps Challenge
-- Operational revision: 6
-- Classification: `declared/proposed/inferred` pre-codebase state
+- Operational revision: 7
+- Classification: `declared/proposed/inferred` approved canonical as-built state
 - Projection: `flowchart`
 
 ```mermaid
@@ -11,7 +11,10 @@ flowchart LR
     ctr_go_service["http-server-projeto-korp"]
     ctr_grafana["Grafana"]
     ctr_nginx["NGINX Reverse Proxy"]
+    ctr_postgres["PostgreSQL 18.4"]
+    ctr_postgres_migrate["PostgreSQL Migration Runner"]
     ctr_prometheus["Prometheus"]
+    ctr_redis["Redis 8.8.1"]
     env_demo["Linux Demonstration Environment"]
     net_bridge["Docker Bridge Network"]
     node_linux_host["Linux Host"]
@@ -36,9 +39,24 @@ flowchart LR
     ctr_go_service -->|"uses shared Docker bridge network"| net_bridge
     ctr_prometheus -->|"uses shared Docker bridge network"| net_bridge
     ctr_grafana -->|"uses shared Docker bridge network"| net_bridge
+    node_linux_host -->|"runs as one-shot Docker container"| ctr_postgres_migrate
+    tech_compose -->|"declares the one-shot migration service"| ctr_postgres_migrate
+    ctr_postgres_migrate -->|"uses the shared Docker bridge during migration"| net_bridge
+    ctr_go_service -->|"uses PostgreSQL as authoritative audit/statistics data source when repository is available"| ctr_postgres
+    ctr_go_service -->|"uses Redis as optional statistics cache and can serve valid cache hits without PostgreSQL"| ctr_redis
+    ctr_postgres_migrate -->|"applies versioned PostgreSQL schema before application data capability is considered ready"| ctr_postgres
+    tech_ansible -->|"waits boundedly for pg_isready before migrations"| ctr_postgres
+    tech_ansible -->|"waits boundedly for redis-cli ping before application startup"| ctr_redis
+    tech_ansible -->|"runs migrations after PostgreSQL and Redis readiness checks"| ctr_postgres_migrate
+    tech_compose -->|"Compose declara e executa o container PostgreSQL da extensao."| ctr_postgres
+    tech_compose -->|"Compose declara e executa o container Redis da extensao."| ctr_redis
+    ctr_postgres -->|"PostgreSQL permanece na rede Docker interna."| net_bridge
+    ctr_redis -->|"Redis permanece na rede Docker interna."| net_bridge
+    node_linux_host -->|"O host Linux executa PostgreSQL como container."| ctr_postgres
+    node_linux_host -->|"O host Linux executa Redis como container."| ctr_redis
 ```
 
 ## Operational summary
 
-Purpose: Modelar e governar a arquitetura pre-codebase do desafio Korp, preservando rastreabilidade entre requisitos, criterios de aceite, decisoes, componentes e validacao.
-Compiled 29 projected items from operational revision 6.
+Purpose: Modelar e governar a arquitetura implementada e validada do Projeto Korp, preservando rastreabilidade entre requisitos, decisoes, componentes, containers, dados, processos operacionais e o estado as-built da aplicacao.
+Compiled 47 projected items from operational revision 7.

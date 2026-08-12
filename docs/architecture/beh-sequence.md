@@ -1,8 +1,8 @@
 # BEH-SEQUENCE — Interaction Sequence
 
 - Project: Projeto Korp DevOps Challenge
-- Operational revision: 6
-- Classification: `declared/proposed/inferred` pre-codebase state
+- Operational revision: 7
+- Classification: `declared/proposed/inferred` approved canonical as-built state
 - Projection: `sequenceDiagram`
 
 ```mermaid
@@ -18,5 +18,5 @@ sequenceDiagram
 
 ## Operational summary
 
-Purpose: Modelar e governar a arquitetura pre-codebase do desafio Korp, preservando rastreabilidade entre requisitos, criterios de aceite, decisoes, componentes e validacao.
-Compiled 7 projected items from operational revision 6.
+Purpose: Modelar e governar a arquitetura implementada e validada do Projeto Korp, preservando rastreabilidade entre requisitos, decisoes, componentes, containers, dados, processos operacionais e o estado as-built da aplicacao.
+Compiled 7 projected items from operational revision 7.
