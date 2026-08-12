@@ -16,6 +16,13 @@ type fakeRepository struct {
 	err    error
 }
 
+type statisticsCache struct{ err error }
+
+func (c statisticsCache) Get(context.Context, string) ([]byte, error) { return nil, c.err }
+func (c statisticsCache) Set(context.Context, string, []byte, time.Duration) error {
+	return nil
+}
+
 func (f *fakeRepository) Append(_ context.Context, event audit.Event) error {
 	if f.err != nil {
 		return f.err
@@ -132,6 +139,48 @@ func TestAuditEndpointsMapValidationAndRepositoryErrors(t *testing.T) {
 		server.Close()
 		if response.StatusCode != tc.want {
 			t.Errorf("%s status = %d, want %d", tc.path, response.StatusCode, tc.want)
+		}
+	}
+}
+
+func TestAuditEventsReturnsUnavailableWithoutRepository(t *testing.T) {
+	server := httptest.NewServer(NewHandler(audit.NewStatisticsService(nil, nil, 0, nil)))
+	defer server.Close()
+	response, err := http.Get(server.URL + "/audit-events")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusServiceUnavailable {
+		t.Fatalf("status = %d, want %d", response.StatusCode, http.StatusServiceUnavailable)
+	}
+}
+
+func TestProjectEndpointWorksWithoutRepository(t *testing.T) {
+	server := httptest.NewServer(NewHandler(audit.NewStatisticsService(nil, nil, 0, nil)))
+	defer server.Close()
+	response, err := http.Get(server.URL + "/projeto-korp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", response.StatusCode, http.StatusOK)
+	}
+}
+
+func TestStatisticsReturnsUnavailableWithoutRepositoryAfterCacheFailure(t *testing.T) {
+	for _, cacheErr := range []error{audit.ErrCacheMiss, errors.New("redis unavailable")} {
+		server := httptest.NewServer(NewHandler(audit.NewStatisticsService(nil, statisticsCache{err: cacheErr}, time.Minute, nil)))
+		response, err := http.Get(server.URL + "/request-statistics?from=2026-08-11T00:00:00Z&to=2026-08-11T01:00:00Z")
+		if err != nil {
+			server.Close()
+			t.Fatal(err)
+		}
+		response.Body.Close()
+		server.Close()
+		if response.StatusCode != http.StatusServiceUnavailable {
+			t.Fatalf("cache error %v status = %d, want %d", cacheErr, response.StatusCode, http.StatusServiceUnavailable)
 		}
 	}
 }

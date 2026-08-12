@@ -67,6 +67,19 @@ func TestUnknownRouteUsesBoundedUnmatchedLabel(t *testing.T) {
 	}
 }
 
+func TestCanonicalRoutesUseCanonicalMetricLabels(t *testing.T) {
+	server := newTestServer()
+	defer server.Close()
+
+	get(t, server.URL+"/projeto-korp")
+	get(t, server.URL+"/audit-events")
+	get(t, server.URL+"/request-statistics?from=2026-08-11T00:00:00Z&to=2026-08-11T01:00:00Z")
+	body := scrape(t, server.URL)
+	assertCounterValue(t, body, `method="GET",route="/projeto-korp",status="200"`, 1)
+	assertCounterValue(t, body, `method="GET",route="/audit-events",status="503"`, 1)
+	assertCounterValue(t, body, `method="GET",route="/request-statistics",status="503"`, 1)
+}
+
 func TestMetricsScrapesDoNotIncrementApplicationCounter(t *testing.T) {
 	server := newTestServer()
 	defer server.Close()

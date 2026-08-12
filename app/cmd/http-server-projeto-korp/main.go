@@ -26,17 +26,18 @@ func main() {
 	}
 	statisticsCache := redisstats.New(cacheConfig.Address)
 	defer statisticsCache.Close()
-	var auditService *audit.Service
+	var repository audit.Repository
 	if database, err := config.DatabaseFromEnv(); err != nil {
 		log.Printf("postgres audit disabled: %v", err)
 	} else if pool, err := newPool(database); err != nil {
 		log.Printf("postgres audit disabled: %v", err)
 	} else {
-		repository := postgres.NewRepository(pool)
-		defer repository.Close()
-		auditService = audit.NewStatisticsService(repository, statisticsCache, cacheConfig.TTL, metricsComponent)
-		auditService.StartRetention(context.Background())
+		postgresRepository := postgres.NewRepository(pool)
+		defer postgresRepository.Close()
+		repository = postgresRepository
 	}
+	auditService := audit.NewStatisticsService(repository, statisticsCache, cacheConfig.TTL, metricsComponent)
+	auditService.StartRetention(context.Background())
 	server := &http.Server{
 		Addr:    listenAddress,
 		Handler: metricsComponent.Handler(httpserver.NewHandler(auditService)),

@@ -60,6 +60,9 @@ func (s *Service) StartRetention(ctx context.Context) {
 }
 
 func (s *Service) runRetention(ctx context.Context) {
+	if s == nil || s.repository == nil {
+		return
+	}
 	started := time.Now()
 	cutoff := time.Now().UTC().Add(-retentionDays)
 	_, err := s.repository.PurgeBefore(ctx, cutoff)
@@ -74,11 +77,27 @@ func (s *Service) Record(ctx context.Context, event Event) {
 	if s == nil || s.repository == nil {
 		return
 	}
-	_ = s.repository.Append(ctx, event)
+	started := time.Now()
+	err := s.repository.Append(ctx, event)
+	result := "success"
+	if err != nil {
+		result = "error"
+	}
+	s.observeRepository("append", result, time.Since(started))
 }
 
 func (s *Service) List(ctx context.Context, filter ListFilter) ([]Event, bool, error) {
-	return s.repository.List(ctx, filter)
+	if s == nil || s.repository == nil {
+		return nil, false, errors.New("audit repository unavailable")
+	}
+	started := time.Now()
+	items, hasNext, err := s.repository.List(ctx, filter)
+	result := "success"
+	if err != nil {
+		result = "error"
+	}
+	s.observeRepository("list", result, time.Since(started))
+	return items, hasNext, err
 }
 
 func (s *Service) Statistics(ctx context.Context, filter StatisticsFilter) (Statistics, error) {
@@ -91,8 +110,8 @@ func (s *Service) StatisticsWithSource(ctx context.Context, filter StatisticsFil
 }
 
 func (s *Service) statisticsWithCache(ctx context.Context, filter StatisticsFilter) (Statistics, time.Time, string, error) {
-	if s == nil || s.repository == nil {
-		return Statistics{}, time.Time{}, "", errors.New("statistics repository unavailable")
+	if s == nil {
+		return Statistics{}, time.Time{}, "", errors.New("statistics service unavailable")
 	}
 	key := StatisticsCacheKey(filter)
 	if s.cache != nil {
@@ -108,6 +127,9 @@ func (s *Service) statisticsWithCache(ctx context.Context, filter StatisticsFilt
 		} else {
 			s.observeCacheLookup(cacheResult(err, payload), time.Since(started))
 		}
+	}
+	if s.repository == nil {
+		return Statistics{}, time.Time{}, "", errors.New("statistics repository unavailable")
 	}
 
 	started := time.Now()

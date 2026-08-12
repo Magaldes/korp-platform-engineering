@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/projeto-korp/app/internal/audit"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -95,10 +96,7 @@ func (c *Component) Middleware(next http.Handler) http.Handler {
 		writer := &statusWriter{ResponseWriter: w}
 		next.ServeHTTP(writer, r)
 
-		route := "unmatched"
-		if r.URL.Path == projectPath {
-			route = projectPath
-		}
+		route := audit.CanonicalRoute(r.URL.Path)
 		c.requests.WithLabelValues(r.Method, route, strconv.Itoa(writer.statusCode())).Inc()
 	})
 }

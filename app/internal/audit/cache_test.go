@@ -67,6 +67,30 @@ func TestStatisticsCacheHitPreservesGeneratedAt(t *testing.T) {
 	}
 }
 
+func TestStatisticsCacheHitWorksWithoutRepository(t *testing.T) {
+	generatedAt := time.Date(2026, 8, 11, 0, 30, 0, 0, time.UTC)
+	payload, _ := json.Marshal(CachedStatistics{Statistics: Statistics{ByStatus: []StatusCount{}, ByRoute: []RouteCount{}, TotalRequests: 4}, GeneratedAt: generatedAt})
+	service := NewStatisticsService(nil, &cacheTestStore{payload: payload}, time.Minute, nil)
+	statistics, gotGeneratedAt, source, err := service.StatisticsWithSource(context.Background(), testFilter())
+	if err != nil || source != "cache" || statistics.TotalRequests != 4 || !gotGeneratedAt.Equal(generatedAt) {
+		t.Fatalf("result = %+v %s %v %v", statistics, source, gotGeneratedAt, err)
+	}
+}
+
+func TestStatisticsCacheMissWithoutRepositoryReturnsError(t *testing.T) {
+	service := NewStatisticsService(nil, &cacheTestStore{err: ErrCacheMiss}, time.Minute, nil)
+	if _, _, source, err := service.StatisticsWithSource(context.Background(), testFilter()); err == nil || source != "" {
+		t.Fatalf("result source=%q error=%v, want error without source", source, err)
+	}
+}
+
+func TestStatisticsCacheErrorWithoutRepositoryReturnsError(t *testing.T) {
+	service := NewStatisticsService(nil, &cacheTestStore{err: errors.New("redis unavailable")}, time.Minute, nil)
+	if _, _, source, err := service.StatisticsWithSource(context.Background(), testFilter()); err == nil || source != "" {
+		t.Fatalf("result source=%q error=%v, want error without source", source, err)
+	}
+}
+
 func TestStatisticsCacheMissFallsBackAndWritesTTL(t *testing.T) {
 	store := &cacheTestStore{err: ErrCacheMiss}
 	repository := &cacheTestRepository{statistics: Statistics{ByStatus: []StatusCount{}, ByRoute: []RouteCount{}, TotalRequests: 2}}
